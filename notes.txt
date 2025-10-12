@@ -1,0 +1,14 @@
+Actions 
+Agent can take: Up, down, left, right, jump with a (5 actions)
+Can jump at the same time as moving
+down can go through platforms
+
+Reward Designs
+1) reaching the goal in levels/surviving or speedrun
+2) Collecting the most coins
+
+Place all souce code in it's own folder
+In main section have gym files, with env reading in functions from that folders files
+for clean code.
+
+Player selected movement controlled in game.py
