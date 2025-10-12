@@ -62,9 +62,10 @@ class game():
         self.victory = victory.Victory(self)
 
 
-        #updates controls - called within update
-    def update_actions(self):
-        #gets keys pressed from pygame
+    # updates controls - called within update
+    # change to allow passing in actions to pass in from drl
+    def update_actions(self, action=-1):
+        # gets keys pressed from pygame
         keys = pygame.key.get_pressed()
         #resets all keys to false
         for k in self.actions:
@@ -72,9 +73,29 @@ class game():
         #sets any key to true if its pressed
         # iterating through like pygame.K_a, pygame.K_s, pygame.K_UP, etc
         # finding the key and setting it to true for player movement
-        for k in self.action_mapping.values():
-            if keys[k]:
-                self.actions[utilities.get_key(self.action_mapping,k)] = True
+        # added code
+        if action == -1:
+            for k in self.action_mapping.values():
+                # ie if keys[pygame.K_a]
+                if keys[k]:
+                    self.actions[utilities.get_key(self.action_mapping,k)] = True
+        # DRL passed in action
+        else:
+            # agent stands still
+            if action == 0:
+                pass
+            # Setting 1 to be left key, 2 = go right, 3 down, 4 short/tap jump, 5 high/hold jump
+            elif action == 1:
+                self.actions["left"] = True
+            elif action == 2:
+                self.actions["right"] = True
+            elif action == 3:
+                self.actions["down"] = True
+            elif action == 4:
+                self.actions["a"] = True
+            else:
+                pass
+
         self.pausecooldown -= 1
         if keys[pygame.K_ESCAPE]:
             self.running = False
