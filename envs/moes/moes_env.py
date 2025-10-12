@@ -16,6 +16,10 @@ class MoesEnv(gym.env):
         self.game = game()
 
     # reset acts like the game loop with step being like the frame
+    # in gameloop, gameloop acts like the episode with a loop within controlling the frames
+    # so update and render happenning in each frame
+    # Here step is like a frame, want to call update and render within step to handle
+    # action + environment change + reward for 1 frame
 
     # Reset the game to its initial state (player position, level, score, enemies, etc.).
     def reset():
@@ -25,21 +29,31 @@ class MoesEnv(gym.env):
     # many of these per episode
     def step(self, action: int):
         # Handle actions
-        # do nothing
-        if action == 0:
-            pass
+        # do nothing or move left, right, down, jump
+        # if action == 0:
+        #     pass
+        # else:
+        self.game.update(action)
+
         # left
-        elif action == 1:
-            self.game.update_actions(1)
-        # right
-        elif action == 2:
-            self.game.update_actions(2)
-        # down
-        elif action == 3:
-            self.game.update_actions(3)
-        # jump
-        else:
-            self.game.update_actions(4)
+        # elif action == 1:
+        #     #CHANGE SO CALLING UPDATE AND UPDATE PASSING IN ACTION
+        #     #self.game.update_actions(1)
+        #     self.game.update(1)
+        # # right
+        # elif action == 2:
+        #     #self.game.update_actions(2)
+        #     self.game.update(2)
+        # # down
+        # elif action == 3:
+        #     #self.game.update_actions(3)
+        #     self.game.update(3)
+        # # jump
+        # else:
+        #     #self.game.update_actions(4)
+        #     self.game.update(4)
+
+        
 
         # handle environment update
 

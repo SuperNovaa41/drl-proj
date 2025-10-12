@@ -64,39 +64,40 @@ class game():
 
     # updates controls - called within update
     # change to allow passing in actions to pass in from drl
-    def update_actions(self, action=-1):
+    def update_actions(self, action = -1):
         # gets keys pressed from pygame
         keys = pygame.key.get_pressed()
         #resets all keys to false
         for k in self.actions:
             self.actions[k] = False
-        #sets any key to true if its pressed
+        # sets any key to true if its pressed
         # iterating through like pygame.K_a, pygame.K_s, pygame.K_UP, etc
         # finding the key and setting it to true for player movement
-        # added code
         if action == -1:
             for k in self.action_mapping.values():
                 # ie if keys[pygame.K_a]
                 if keys[k]:
-                    self.actions[utilities.get_key(self.action_mapping,k)] = True
-        # DRL passed in action
+                    self.actions[utilities.get_key(self.action_mapping,k)] = True 
+        # DRL chosen action
+        # Setting 0 as standing still, 1 to be left key, 2 = go right, 3 down, 
+        # 4 jump
+        elif action == 0:
+            pass
+        elif action == 1:
+            self.actions["left"] = True
+        elif action == 2:
+            self.actions["right"] = True
+        elif action == 3:
+            self.actions["down"] = True
         else:
-            # Setting 1 to be left key, 2 = go right, 3 down, 4 short/tap jump, 5 high/hold jump
-            if action == 1:
-                self.actions["left"] = True
-            elif action == 2:
-                self.actions["right"] = True
-            elif action == 3:
-                self.actions["down"] = True
-            else:
-                self.actions["a"] = True
+            self.actions["a"] = True
 
         self.pausecooldown -= 1
         if keys[pygame.K_ESCAPE]:
             self.running = False
             pygame.quit()
 
-    def update(self):
+    def update(self, action = -1):
         #print(self.clock.get_fps())
         self.delta_time = (self.clock.tick(self.target_fps) * .001 * self.target_fps)
         for event in pygame.event.get():
@@ -106,7 +107,7 @@ class game():
             if event.type == pygame.JOYBUTTONDOWN:
                 print(event)
         # This causing the key press to happen
-        self.update_actions()
+        self.update_actions(action)
         try:
             if self.joystick.get_button(1):
                 self.actions["a"] = True
