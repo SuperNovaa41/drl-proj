@@ -99,8 +99,9 @@ class Player(pygame.sprite.Sprite):
             self.move(0, -1)
             self.jumptimer -= 1
             self.actstate["jumping"] = True
-        if not self.game.game.actions["a"] and self.jumptimer < 20:
-            self.jumptimer = 0
+        # this what cuts jump short - keeping one high jump instead of holding
+        # if not self.game.game.actions["a"] and self.jumptimer < 20:
+        #     self.jumptimer = 0
         if self.direction == 0:
             if self.actstate["walking"]:
                 self.image = self.walk_right[int(self.frame/8%2)]

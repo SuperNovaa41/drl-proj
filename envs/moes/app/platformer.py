@@ -10,7 +10,6 @@ import player
 import blocks
 import level
 import utilities
-#import fuckit
 
 class Platformer(state.State):
     def __init__(self, game):

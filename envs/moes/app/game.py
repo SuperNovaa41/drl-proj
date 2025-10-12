@@ -81,20 +81,15 @@ class game():
                     self.actions[utilities.get_key(self.action_mapping,k)] = True
         # DRL passed in action
         else:
-            # agent stands still
-            if action == 0:
-                pass
             # Setting 1 to be left key, 2 = go right, 3 down, 4 short/tap jump, 5 high/hold jump
-            elif action == 1:
+            if action == 1:
                 self.actions["left"] = True
             elif action == 2:
                 self.actions["right"] = True
             elif action == 3:
                 self.actions["down"] = True
-            elif action == 4:
-                self.actions["a"] = True
             else:
-                pass
+                self.actions["a"] = True
 
         self.pausecooldown -= 1
         if keys[pygame.K_ESCAPE]:
