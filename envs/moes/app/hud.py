@@ -16,6 +16,11 @@ class hud():
         self.livestext = self.game.game.tiny_font.render("Lives: " + str(self.game.lives), False, (190, 190, 190))
         self.time += 1 * self.game.game.delta_time * .01
         self.timetext = self.game.game.tiny_font.render("time: " + str(int(self.time)), False, (190, 190, 190))
+
+    # Olly added
+    def get_time(self):
+        return self.time
+
     def render(self,surf):
 
         surf.blit(self.hudbg,(0,0))

@@ -3,7 +3,6 @@ import gymnasium as gym
 from gymnasium import spaces
 from app.game import game
 
-
 # episode in context of a platformer = player playing uninterupted (ie til hitting goal or dieing)
 
 # will want to pass in character object from app folder
@@ -22,48 +21,45 @@ class MoesEnv(gym.env):
     # action + environment change + reward for 1 frame
 
     # Reset the game to its initial state (player position, level, score, enemies, etc.).
-    def reset():
+    def reset(self):
         pass
 
     # one decision point, ie movement 1 to the right, or one jump
     # many of these per episode
     def step(self, action: int):
-        # Handle actions
-        # do nothing or move left, right, down, jump
-        # if action == 0:
-        #     pass
-        # else:
+        # Handles actions + updates environment
         self.game.update(action)
 
-        # left
-        # elif action == 1:
-        #     #CHANGE SO CALLING UPDATE AND UPDATE PASSING IN ACTION
-        #     #self.game.update_actions(1)
-        #     self.game.update(1)
-        # # right
-        # elif action == 2:
-        #     #self.game.update_actions(2)
-        #     self.game.update(2)
-        # # down
-        # elif action == 3:
-        #     #self.game.update_actions(3)
-        #     self.game.update(3)
-        # # jump
-        # else:
-        #     #self.game.update_actions(4)
-        #     self.game.update(4)
+        # terminated = beat level (hit flag) or died (lost all hearts)
+        # through transition to win or death state
+        if self.game.curr_state == self.game.winscreen:
+            terminated = True
+        elif self.game.curr_state == self.game.deathscreen:
+            terminated = True
+        else:
+            terminated = False
 
+        # Handle truncated = technical limit so like level time limit
+        # could potentially add truncation for agent walking into a wall/idle
+
+        # if level timer > 5 minutes
+        #   truncated = True
         
 
-        # handle environment update
 
         # handle rewards
-        pass
 
-    def render():
-        pass
+        # observation tied to update function, need to put it as a vector somehow
 
-    def close():
+
+
+        # need to return: observation, reward, terminated, truncated, info = env.step(action)
+        return
+
+    def render(self):
+        self.game.render()
+
+    def close(self):
         pass
 
     pass

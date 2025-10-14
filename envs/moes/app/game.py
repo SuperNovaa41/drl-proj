@@ -57,6 +57,7 @@ class game():
         self.spash = spashscreen.SpashScreen(self)
         self.start = startscreen.StartScreen(self)
         self.levelselection = levelselect.LevelSelect(self)
+        # tied to HUD which is tied to level time
         self.platformer = platformer.Platformer(self)
         self.pausecooldown = 20
         self.victory = victory.Victory(self)
@@ -100,6 +101,7 @@ class game():
     def update(self, action = -1):
         #print(self.clock.get_fps())
         self.delta_time = (self.clock.tick(self.target_fps) * .001 * self.target_fps)
+        #self.time += 1 * self.game.game.delta_time * .01
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -124,6 +126,11 @@ class game():
         except:
             pass
         self.curr_state.update()
+
+    # olly added
+    def get_hud(self):
+        
+        return
 
     def render(self):
         self.screen.fill((0,0,0))
