@@ -51,7 +51,6 @@ class Platformer(state.State):
         self.healthsound = utilities.loadSound(os.path.join("data", "sounds"), "health.wav")
         self.hud = hud.hud(self)
 
-
     def action_update(self):
         if self.game.actions["right"] and self.player.hitcooldown < 10:
             self.player.move(1 * self.game.delta_time,0)
@@ -83,18 +82,26 @@ class Platformer(state.State):
     def win(self):
         self.exit()
         self.game.winscreen.enter()
+        # Olly added
+        self.hud.reset_time()
     def vic(self):
         self.exit()
         pygame.mixer.music.unload()
         self.game.victory.enter()
+        # Olly added
+        self.hud.reset_time()
     def die(self):
         self.exit()
         self.lives -= 1
         if self.lives <= 0:
             self.game.curr_state.exit()
             self.game.gameover.enter()
+            # Olly added
+            self.hud.reset_time()
         else:
             self.game.deathscreen.enter()
+            # Olly added
+            self.hud.reset_time()
 
     def update(self):
         self.action_update()

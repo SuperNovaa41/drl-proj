@@ -16,6 +16,10 @@ class hud():
         self.livestext = self.game.game.tiny_font.render("Lives: " + str(self.game.lives), False, (190, 190, 190))
         self.time += 1 * self.game.game.delta_time * .01
         self.timetext = self.game.game.tiny_font.render("time: " + str(int(self.time)), False, (190, 190, 190))
+    
+    # Olly added - to be used to reset on new levels/deaths
+    def reset_time(self):
+        self.time = 0
 
     # Olly added
     def get_time(self):

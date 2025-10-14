@@ -39,17 +39,24 @@ class MoesEnv(gym.env):
         else:
             terminated = False
 
-        # Handle truncated = technical limit so like level time limit
+        # truncated = technical limit, ie level time limit so agent doesn't play endlessly
+        # Agent gets 5 minutes max to beat a level
+        if self.game.level_time >= 300:
+            truncated = True
         # could potentially add truncation for agent walking into a wall/idle
 
-        # if level timer > 5 minutes
-        #   truncated = True
-        
-
-
         # handle rewards
+        reward = 0.0
+
+        # handle different modes like coins/survival later, for now simple reward for staying alive
+        reward += 0.1
+
+        if terminated:
+            reward -= 1.0
 
         # observation tied to update function, need to put it as a vector somehow
+
+        # info
 
 
 
