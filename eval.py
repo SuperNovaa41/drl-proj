@@ -1,3 +1,5 @@
+#!/bin/python
+
 from stable_baselines3 import DQN
 from env import GameEnv
 

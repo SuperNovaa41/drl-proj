@@ -56,6 +56,7 @@ class GameEnv(gym.Env):
         # left, right, jump
         self.action_space = spaces.Discrete(3)
 
+
         """
             observation space will be:
             player x, player y, nearest enemy x, nearest enemy y,
@@ -179,6 +180,7 @@ class GameEnv(gym.Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
+        self.current_map = 1
         self.reset_state()
         return self._get_obs(), {}
 
@@ -272,6 +274,7 @@ class GameEnv(gym.Env):
 
                     if len(self.coins) == 0:
                         self.win = True
+                        reward += 1000
             for enemy in self.enemeies:
                 if not enemy[2]: # skip if dead 
                     continue
@@ -340,7 +343,7 @@ class GameEnv(gym.Env):
         if self.steps >= self.max_steps:
             terminated = True
 
-        print("Total reward for this step: " + str(reward))
+        #print("Total reward for this step: " + str(reward))
 
         return self._get_obs(), reward, terminated, False, {}
             
