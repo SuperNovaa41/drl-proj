@@ -17,6 +17,13 @@ TODO:
 class GameEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
 
+    def load_map(self):
+        map_str = 'maps/map_' + str(self.current_map)
+        with open(map_str, 'r') as file:
+            self.level_map = []
+            for line in file:
+                self.level_map.append(line)
+
     def __init__(self):
         super(GameEnv, self).__init__()
 
@@ -26,6 +33,9 @@ class GameEnv(gym.Env):
         self.speed = 5
         self.tile_size = 50
 
+        self.maps = 2
+        self.current_map = 1
+
         self.max_coins = 0
         self.remaining_coins = 0
         self.max_enemies = 0
@@ -34,14 +44,10 @@ class GameEnv(gym.Env):
 # now we just need to add multiple levels, but i want to make it reliably beat the first level first
 # adding mutliple should be piss easy, just modify the game win function to change the level instead
 # of load a new one
-        with open('map', 'r') as file:
-            self.level_map = []
-            for line in file:
-                self.level_map.append(line)
+        self.load_map()
 
         # left, right, top, bottom
         self.collide = [0, 0, 0, 0]
-
 
 
         # left, right, jump
@@ -71,7 +77,11 @@ class GameEnv(gym.Env):
         if len(self.coins) > 0:
             closest_coin = self.coins[0]
             for coin in self.coins:
-                if abs(self.player.x - coin.x) < abs(self.player.x - closest_coin.x):
+                player_pos = np.array((self.player.x, self.player.y))
+                coin_pos = np.array((coin.x, coin.y))
+                cc_pos = np.array((closest_coin.x, closest_coin.y))
+
+                if abs(np.linalg.norm(player_pos - coin_pos)) < abs(np.linalg.norm(player_pos - cc_pos)):
                     closest_coin = coin
         else:
             closest_coin = None
@@ -143,6 +153,8 @@ class GameEnv(gym.Env):
         self.respawn_timer = 0
         self.tiles, self.coins, self.enemeies = [], [], []
 
+        self.load_map()
+
         for y, row in enumerate(self.level_map):
             for x, cell in enumerate(row):
                 rect = pygame.Rect(x * self.tile_size, y * self.tile_size, self.tile_size, self.tile_size)
@@ -174,9 +186,10 @@ class GameEnv(gym.Env):
         if not self.game_over and not self.win:
             reward += 0.1
 
-            temp_dist = abs(self.get_closest_coin().x - self.player.x)
-            reward += (1 - temp_dist / self.screen_width) * 0.05
-
+            temp_dist = 0
+            if self.get_closest_coin() is not None:
+                temp_dist = self.get_closest_coin().x - self.player.x
+                reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
 
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
@@ -186,9 +199,14 @@ class GameEnv(gym.Env):
             if action == 0:
                 dx = -(self.speed)
                 self.player_direction = -1
+                if (temp_dist > 0):
+                    reward -= 1
+                
             if action == 1:
                 dx = self.speed
                 self.player_direction = 1
+                if (temp_dist < 0):
+                    reward -= 1
 
             if action == 2 and not self.jump and self.vel_y >= -2:
                 self.vel_y = self.jump_force
@@ -222,14 +240,14 @@ class GameEnv(gym.Env):
                         self.player.top = tile.bottom
                         self.vel_y = 0
                         self.collide[2] = 1
-                        reward -= 10
+                        reward -= 100
                     break
 
             for coin in self.coins[:]:
                 if self.player.colliderect(coin):
                     self.coins.remove(coin)
                     self.score += 10
-                    reward += 10
+                    reward += 1
                     self.remaining_coins -= 1
 
                     if len(self.coins) == 0:
@@ -263,7 +281,7 @@ class GameEnv(gym.Env):
                         enemy[2] = False # kill enemy
                         self.vel_y = self.jump_force // 2
                         self.score += 50
-                        reward += 50
+                        reward += 2 
                         self.remaining_enemies -= 1
                     else:
                         self.lives -= 1
@@ -292,10 +310,17 @@ class GameEnv(gym.Env):
         if self.game_over:
             terminated = True
         elif self.win:
-            terminated = True
+            if self.current_map > self.maps:
+                terminated = True
+            else:
+                self.current_map += 1
+                self.win = False
+                self.reset_state()
 
         if self.steps >= self.max_steps:
             terminated = True
+
+       # print("Total reward for this step: " + str(reward))
 
         return self._get_obs(), reward, terminated, False, {}
             
