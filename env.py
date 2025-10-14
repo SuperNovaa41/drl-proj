@@ -41,6 +41,9 @@ class GameEnv(gym.Env):
         self.max_enemies = 0
         self.remaining_enemies = 0
 
+        self.coin_penalty = 100
+        self.coin_modifier = 0
+
 # now we just need to add multiple levels, but i want to make it reliably beat the first level first
 # adding mutliple should be piss easy, just modify the game win function to change the level instead
 # of load a new one
@@ -135,6 +138,9 @@ class GameEnv(gym.Env):
         self.remaining_enemies = 0
         self.max_enemies = 0
 
+        self.coin_penalty = 100
+        self.coin_modifier = 0
+
 
         self.steps = 0
         self.max_steps = 1000
@@ -186,10 +192,25 @@ class GameEnv(gym.Env):
         if not self.game_over and not self.win:
             reward += 0.1
 
+            self.coin_penalty -= 1
+
+            if self.coin_penalty == 0:
+                self.coin_penalty = 100
+                self.coin_modifier -= 0.2
+
+            reward += self.coin_modifier
+
             temp_dist = 0
             if self.get_closest_coin() is not None:
-                temp_dist = self.get_closest_coin().x - self.player.x
+                cc = self.get_closest_coin()
+                cc_pos = np.array((cc.x, cc.y))
+                p_pos = np.array((self.player.x, self.player.y))
+                temp_dist = np.linalg.norm(cc_pos - p_pos)
                 reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
+                if action == 0:
+                    reward -= 1 if (cc.x > self.player.x) else 0
+                if action == 1:
+                    reward -= 1 if (cc.x < self.player.x) else 0
 
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
@@ -199,14 +220,10 @@ class GameEnv(gym.Env):
             if action == 0:
                 dx = -(self.speed)
                 self.player_direction = -1
-                if (temp_dist > 0):
-                    reward -= 1
                 
             if action == 1:
                 dx = self.speed
                 self.player_direction = 1
-                if (temp_dist < 0):
-                    reward -= 1
 
             if action == 2 and not self.jump and self.vel_y >= -2:
                 self.vel_y = self.jump_force
@@ -249,6 +266,9 @@ class GameEnv(gym.Env):
                     self.score += 10
                     reward += 1
                     self.remaining_coins -= 1
+
+                    self.coin_penalty = 20
+                    self.coin_modifier = 1
 
                     if len(self.coins) == 0:
                         self.win = True
@@ -310,7 +330,7 @@ class GameEnv(gym.Env):
         if self.game_over:
             terminated = True
         elif self.win:
-            if self.current_map > self.maps:
+            if self.current_map >= self.maps:
                 terminated = True
             else:
                 self.current_map += 1
@@ -320,7 +340,7 @@ class GameEnv(gym.Env):
         if self.steps >= self.max_steps:
             terminated = True
 
-       # print("Total reward for this step: " + str(reward))
+        print("Total reward for this step: " + str(reward))
 
         return self._get_obs(), reward, terminated, False, {}
             
