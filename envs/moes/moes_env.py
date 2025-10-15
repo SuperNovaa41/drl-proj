@@ -10,6 +10,9 @@ from app.game import game
 class MoesEnv(gym.env):
 
     def __init__(self):
+        # flappy bird version
+        # self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
+        self.observation_space = 
         # 0 - do nothing, 1 go left, 2 go right, 3 down, 4 jump
         self.action_space = spaces.Discrete(5)
         self.game = game()
@@ -68,5 +71,11 @@ class MoesEnv(gym.env):
 
     def close(self):
         pass
+
+    def _get_observation(self):
+        # find how to get x and y positions relative to the size of the map
+        self.game.get_x_coord_game()
+        self.game.get_y_coord_game()
+        return
 
     pass

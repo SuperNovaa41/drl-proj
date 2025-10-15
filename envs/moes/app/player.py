@@ -25,6 +25,7 @@ class Player(pygame.sprite.Sprite):
         self.hit_left = pygame.transform.flip(self.hit_right, True,False).convert_alpha()
 
         self.image = self.idle_right[0]
+        # Olly added note - pygame rect object created
         self.rect = self.image.get_rect().inflate(-2,0)
         self.position = self.rect.topleft
         self.collision_group = pygame.sprite.Group()
@@ -47,6 +48,13 @@ class Player(pygame.sprite.Sprite):
         self.hitcooldown = 0
         self.direction = 0
 
+    # Olly added
+    def get_x_coord(self):
+        return self.rect.x
+    
+    # Olly Added
+    def get_y_coord(self):
+        return self.rect.y
 
     def move(self,x,y, rfix = False):
         self.move_single_axis(round(x), 0,rfix)
