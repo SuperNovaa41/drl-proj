@@ -33,8 +33,10 @@ class GameEnv(gym.Env):
         self.speed = 5
         self.tile_size = 50
 
-        self.maps = 2
+        self.maps = 3
         self.current_map = 1
+
+        self.line_of_sight = False
 
         self.max_coins = 0
         self.remaining_coins = 0
@@ -65,11 +67,11 @@ class GameEnv(gym.Env):
             line of sight, direction
         """
         self.observation_space = spaces.Box(
-            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                          dtype=np.float32),
-            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
         )
@@ -99,22 +101,39 @@ class GameEnv(gym.Env):
             if abs(self.player.x - enemy[0].x) < abs(self.player.x - closest_rect.x):
                 closest_rect = enemy[0]
         return closest_rect
+    
+    def get_closest_tile(self):
+        closest_tile = self.tiles[0][0]
+        for tile, _ in self.tiles:
+            player_pos = np.array((self.player.x, self.player.y))
+            tile_pos = np.array((tile.x, tile.y))
+            ct_pos = np.array((closest_tile.x, closest_tile.y))
+
+            if abs(np.linalg.norm(player_pos - tile_pos)) < abs(np.linalg.norm(player_pos - ct_pos)):
+                closest_tile = tile
+        return closest_tile
 
     def _get_obs(self):
         closest_rect = self.get_closest_enemy()
         closest_coin = self.get_closest_coin()
 
         line_of_sight = 1.0
+        self.line_of_sight = True
         for tile, _ in self.tiles:
             cc = self.get_closest_coin()
             if cc is None:
                 break
             if tile.clipline((self.player.x, self.player.y), (cc.x, cc.y)):
                 line_of_sight = 0.0
+                self.line_of_sight = False
 
         left_or_right = 0.5
         if closest_coin is not None:
             left_or_right = 1 if (closest_coin.x > self.player.x) else 0
+
+        above_or_below = 0.5
+        if closest_coin is not None:
+            above_or_below = 1 if (closest_coin.y < self.player.y) else 0
 
 
 
@@ -131,7 +150,10 @@ class GameEnv(gym.Env):
                          self.remaining_coins / self.max_coins,
                          self.remaining_enemies / self.max_enemies,
                          line_of_sight,
-                         left_or_right
+                         left_or_right,
+                         above_or_below,
+                         self.get_closest_tile().x / self.screen_width,
+                         self.get_closest_tile().y / self.screen_height
                          ])
 
     def _reset_player(self):
@@ -213,12 +235,7 @@ class GameEnv(gym.Env):
 
             self.coin_penalty -= 1
 
-            if self.coin_penalty == 0:
-                self.coin_penalty = 50
-                self.coin_modifier -= 0.2
-
-            reward += self.coin_modifier
-
+            
             temp_dist = 0
             if self.get_closest_coin() is not None:
                 cc = self.get_closest_coin()
@@ -230,6 +247,10 @@ class GameEnv(gym.Env):
                     reward -= 1 if (cc.x > self.player.x) else 0
                 if action == 1:
                     reward -= 1 if (cc.x < self.player.x) else 0
+
+                if not self.line_of_sight and (self.player.y < cc.y or self.player.y > cc.y):
+                    if self.coin_penalty == 0:
+                        self.coin_modifier -= 1.0
 
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
@@ -361,7 +382,14 @@ class GameEnv(gym.Env):
         if self.steps >= self.max_steps:
             terminated = True
 
-        #print("Total reward for this step: " + str(reward))
+        if self.coin_penalty == 0:
+            self.coin_penalty = 50
+            self.coin_modifier -= 0.2
+
+        reward += self.coin_modifier
+
+
+        print("Total reward for this step: " + str(reward))
 
         return self._get_obs(), reward, terminated, False, {}
             
