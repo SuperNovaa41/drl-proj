@@ -41,7 +41,7 @@ class GameEnv(gym.Env):
         self.max_enemies = 0
         self.remaining_enemies = 0
 
-        self.coin_penalty = 100
+        self.coin_penalty = 50
         self.coin_modifier = 0
 
 # now we just need to add multiple levels, but i want to make it reliably beat the first level first
@@ -61,14 +61,15 @@ class GameEnv(gym.Env):
             observation space will be:
             player x, player y, nearest enemy x, nearest enemy y,
             nearest coin x, nearest coin y, floor underneath,
-            floor above, wall left, wall right, remaining coins, remaninig enemies
+            floor above, wall left, wall right, remaining coins, remaninig enemies,
+            line of sight
         """
         self.observation_space = spaces.Box(
             low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                          dtype=np.float32),
             high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
         )
@@ -103,6 +104,14 @@ class GameEnv(gym.Env):
         closest_rect = self.get_closest_enemy()
         closest_coin = self.get_closest_coin()
 
+        line_of_sight = 1.0
+        for tile, _ in self.tiles:
+            cc = self.get_closest_coin()
+            if tile.clipline((self.player.x, self.player.y), (cc.x, cc.y)):
+                line_of_sight = 0.0
+
+
+
         return np.array([self.player.x / self.screen_width,
                          self.player.y / self.screen_height,
                          closest_rect.x / self.screen_width,
@@ -114,7 +123,8 @@ class GameEnv(gym.Env):
                          self.collide[0],
                          self.collide[1],
                          self.remaining_coins / self.max_coins,
-                         self.remaining_enemies / self.max_enemies
+                         self.remaining_enemies / self.max_enemies,
+                         line_of_sight
                          ])
     
     def _reset_player(self):
@@ -139,7 +149,7 @@ class GameEnv(gym.Env):
         self.remaining_enemies = 0
         self.max_enemies = 0
 
-        self.coin_penalty = 100
+        self.coin_penalty = 50
         self.coin_modifier = 0
 
 
@@ -197,7 +207,7 @@ class GameEnv(gym.Env):
             self.coin_penalty -= 1
 
             if self.coin_penalty == 0:
-                self.coin_penalty = 100
+                self.coin_penalty = 50
                 self.coin_modifier -= 0.2
 
             reward += self.coin_modifier
@@ -209,10 +219,12 @@ class GameEnv(gym.Env):
                 p_pos = np.array((self.player.x, self.player.y))
                 temp_dist = np.linalg.norm(cc_pos - p_pos)
                 reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
+                """
                 if action == 0:
                     reward -= 1 if (cc.x > self.player.x) else 0
                 if action == 1:
                     reward -= 1 if (cc.x < self.player.x) else 0
+                """
 
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
@@ -248,6 +260,7 @@ class GameEnv(gym.Env):
                     break
 
             self.player.y += dy 
+
             for tile, _ in self.tiles:
                 if self.player.colliderect(tile):
                     if dy > 0:
@@ -269,7 +282,7 @@ class GameEnv(gym.Env):
                     reward += 1
                     self.remaining_coins -= 1
 
-                    self.coin_penalty = 20
+                    self.coin_penalty = 50
                     self.coin_modifier = 1
 
                     if len(self.coins) == 0:
