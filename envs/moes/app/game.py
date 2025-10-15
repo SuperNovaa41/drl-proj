@@ -26,9 +26,6 @@ class game():
         self.small_font = pygame.font.Font(self.font_path, 30)
         self.tiny_font = pygame.font.Font(self.font_path, 15)
 
-        # Olly added, time repping amount of time passed in a level, in seconds
-        self.level_time = 0
-
         #sets up current states
         self.curr_state = "game"
         self.prev_state = "game"
@@ -64,17 +61,6 @@ class game():
         self.platformer = platformer.Platformer(self)
         self.pausecooldown = 20
         self.victory = victory.Victory(self)
-
-    # Olly added - rn bug where it doesn't stop counting up for each level
-    def update_level_time(self):
-        self.level_time = self.platformer.hud.get_time()
-
-    # Olly added get x and y coords through game class
-    def get_x_coord_game(self):
-        return self.platformer.player.get_x_coord()
-
-    def get_y_coord_game(self):
-        return self.platformer.player.get_y_coord()
 
     # updates controls - called within update
     # change to allow passing in actions to pass in from drl
@@ -114,10 +100,6 @@ class game():
     def update(self, action = -1):
         #print(self.clock.get_fps())
         self.delta_time = (self.clock.tick(self.target_fps) * .001 * self.target_fps)
-        self.update_level_time()
-        print(self.get_x_coord_game)
-        print(self.get_y_coord_game)
-        #print(self.level_time)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False

@@ -2,6 +2,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 from app.game import game
+import numpy as np
 
 # episode in context of a platformer = player playing uninterupted (ie til hitting goal or dieing)
 
@@ -42,9 +43,11 @@ class MoesEnv(gym.env):
         else:
             terminated = False
 
+        level_time = self.game.platformer.hud.get_time()
+
         # truncated = technical limit, ie level time limit so agent doesn't play endlessly
         # Agent gets 5 minutes max to beat a level
-        if self.game.level_time >= 300:
+        if level_time >= 300:
             truncated = True
         # could potentially add truncation for agent walking into a wall/idle
 
@@ -73,9 +76,36 @@ class MoesEnv(gym.env):
         pass
 
     def _get_observation(self):
+        # Move these later cuz need in reset function
+        level_size = self.game.platformer.camera.get_level_size()
+        level_width = level_size[0]
+        level_height = level_size[1]
         # find how to get x and y positions relative to the size of the map
-        self.game.get_x_coord_game()
-        self.game.get_y_coord_game()
+        x_coord = self.game.platformer.player.get_x_coord()
+        y_coord = self.game.platformer.player.get_y_coord()
+        grounded = self.game.platformer.player.get_grounded()
+
+        # Need to add 
+        # Distance to next jumping platform (x and y) - add later
+        # Distance to nearest enemy/spike (x and y)
+        # Distance to coin (x and y)
+        # Distance to goal (x and y)
+
+        # might need to later add in distance to wall - after see agent working think about
+
+        # floating platform could be above or below me, it has "" underneath it in level map
+
+        obs = np.array([
+            y_coord / level_height,
+            x_coord / level_width,
+            grounded,
+
+        ], dtype=np.float32)
+
+        
+
+        
+        
         return
 
     pass

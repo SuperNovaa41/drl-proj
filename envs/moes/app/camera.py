@@ -37,3 +37,7 @@ class Camera():
     def draw_sprite(self,screen,sprite):
         if sprite.rect.colliderect(pygame.rect.Rect(utilities.sub_pos(screen.get_rect().topleft, self.offset),(screen.get_width(),screen.get_height()))):
             screen.blit(sprite.image,utilities.add_pos(sprite.rect.topleft,self.offset))
+
+    # Olly Added 
+    def get_level_size(self):
+        return self.levelsize

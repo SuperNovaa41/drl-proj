@@ -132,6 +132,8 @@ class Platformer(state.State):
         self.hud.render(self.tempsurf)
         self.game.screen.blit(pygame.transform.scale(self.tempsurf,(800,640)),(0,0))
 
+    # Says there is a certain tile for the direction [down, up, right, left]
+    # g = ground, b = the platform player can down arrow to go through
     def getsurroundings(self,letter, map,x,y):
         loh = [0, 0, 0, 0]
         try:
@@ -162,6 +164,7 @@ class Platformer(state.State):
         for i in self.decor:
             i.kill()
     
+    # Changes wierd letters to a map, associating ie g with ground platform, c with coins
     def levelparse(self,level):
 
         self.lvlclear()

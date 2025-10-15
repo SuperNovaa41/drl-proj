@@ -55,6 +55,10 @@ class Player(pygame.sprite.Sprite):
     # Olly Added
     def get_y_coord(self):
         return self.rect.y
+    
+    # Olly Added - tells whether on the ground or not for jumps
+    def get_grounded(self):
+        return self.grounded
 
     def move(self,x,y, rfix = False):
         self.move_single_axis(round(x), 0,rfix)
