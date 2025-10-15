@@ -62,13 +62,13 @@ class GameEnv(gym.Env):
             player x, player y, nearest enemy x, nearest enemy y,
             nearest coin x, nearest coin y, floor underneath,
             floor above, wall left, wall right, remaining coins, remaninig enemies,
-            line of sight
+            line of sight, direction
         """
         self.observation_space = spaces.Box(
-            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                          dtype=np.float32),
-            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
                            1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
@@ -107,8 +107,14 @@ class GameEnv(gym.Env):
         line_of_sight = 1.0
         for tile, _ in self.tiles:
             cc = self.get_closest_coin()
+            if cc is None:
+                break
             if tile.clipline((self.player.x, self.player.y), (cc.x, cc.y)):
                 line_of_sight = 0.0
+
+        left_or_right = 0.5
+        if closest_coin is not None:
+            left_or_right = 1 if (closest_coin.x > self.player.x) else 0
 
 
 
@@ -124,9 +130,10 @@ class GameEnv(gym.Env):
                          self.collide[1],
                          self.remaining_coins / self.max_coins,
                          self.remaining_enemies / self.max_enemies,
-                         line_of_sight
+                         line_of_sight,
+                         left_or_right
                          ])
-    
+
     def _reset_player(self):
         self.player.x, self.player.y = 100, 100
         self.vel_y = 0
@@ -219,12 +226,10 @@ class GameEnv(gym.Env):
                 p_pos = np.array((self.player.x, self.player.y))
                 temp_dist = np.linalg.norm(cc_pos - p_pos)
                 reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
-                """
                 if action == 0:
                     reward -= 1 if (cc.x > self.player.x) else 0
                 if action == 1:
                     reward -= 1 if (cc.x < self.player.x) else 0
-                """
 
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
