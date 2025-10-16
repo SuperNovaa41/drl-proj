@@ -299,3 +299,7 @@ class Platformer(state.State):
     # Olly added
     def get_current_level(self):
         return self.currentlvl
+    
+    # Olly Added
+    def get_coins(self):
+        return self.coins

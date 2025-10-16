@@ -26,7 +26,15 @@ class MoesEnv(gym.env):
     # action + environment change + reward for 1 frame
 
     # Reset the game to its initial state (player position, level, score, enemies, etc.).
+    # Happens on termination/truncation (new level, player death, agent error)
     def reset(self):
+        # Have an if statement with reason for termination
+        # to advance level if termination
+
+        # reset position at level start, health (in platformer), coins from level
+        # level timer (this should default reset through game)
+
+
         pass
 
     # one decision point, ie movement 1 to the right, or one jump
@@ -55,20 +63,27 @@ class MoesEnv(gym.env):
         # handle rewards
         reward = 0.0
 
-        # handle different modes like coins/survival later, for now simple reward for staying alive
+        # handle different modes like coins/survival later, for now simple reward for staying alive/reaching goal
         reward += 0.1
+
+        # want to add reward based on euclidean distance (x and y) to flag
+        # every time we get closer, slight reward
 
         if terminated:
             reward -= 1.0
 
         # observation tied to update function, need to put it as a vector somehow
+        obs = self._get_observation()
 
         # info
-
-
+        info = {
+            "coins_collected": self.game.platformer.get_coins(),
+            # Will be win state if level complete
+            "is_level_complete": self.game.curr_state
+        }
 
         # need to return: observation, reward, terminated, truncated, info = env.step(action)
-        return
+        return obs, reward, terminated, truncated, info 
 
     def render(self):
         self.game.render()
@@ -78,13 +93,12 @@ class MoesEnv(gym.env):
 
     # Helpers
     def _get_observation(self):
-        # Move these later cuz need in reset function
+        # Move these later cuz need in reset function?
         level_size = self.game.platformer.camera.get_level_size()
         level_width = level_size[0]
         level_height = level_size[1]
         level_width_tiles = level_width // 8
         level_height_tiles =  level_height // 8
-        # find how to get x and y positions relative to the size of the map
         x_coord = self.game.platformer.player.get_x_coord()
         y_coord = self.game.platformer.player.get_y_coord()
         # Converting to tiles
@@ -98,14 +112,15 @@ class MoesEnv(gym.env):
         # get level1["map"]
         current_map = level.all_levels[current_level-1]["map"]
 
-        # Enemies and spikes repped by these symbols
+        # Enemies, coins, goal repped by these symbols
         baddies = {"C", "D", "B", "M", "W", "Q", "J", "8", "S"}
         coin = {"c"}
+        goal = {"f", "E"}
 
-        # Need to add 
-        # Distance to next jumping platform (x and y) - add later
+        # Might add later 
+        # Distance to next jumping platform (x and y)
         # floating platform could be above or below me, it has "" underneath it in level map
-        # might need to later add in distance to wall - after see agent working think about
+        # distance to wall - after see agent working think about
         
         # Getting nearest enemy distances: Left, Right, Up, Down
         l_baddie_distance = self._get_distance_item_left(yt, xt, baddies, current_map, level_width)
@@ -119,9 +134,11 @@ class MoesEnv(gym.env):
         down_coin_distance = self._get_distance_item_down(self, yt, xt, coin, current_map, level_height)
         up_coin_distance = self._get_distance_item_up(self, yt, xt, coin, current_map, level_height)
 
-        # Distance to goal (x and y)
-
-        
+        # Distance to goal
+        l_goal_distance = self._get_distance_item_left(yt, xt, goal, current_map, level_width)
+        r_goal_distance = self._get_distance_item_right(yt, xt, goal, current_map, level_width)
+        down_goal_distance = self._get_distance_item_down(self, yt, xt, goal, current_map, level_height)
+        up_goal_distance = self._get_distance_item_up(self, yt, xt, goal, current_map, level_height)
 
         obs = np.array([
             y_coord / level_height,
@@ -131,8 +148,14 @@ class MoesEnv(gym.env):
             r_baddie_distance / level_width,
             down_baddie_distance / level_height,
             up_baddie_distance / level_height,
-
-
+            l_coin_distance / level_width,
+            r_coin_distance / level_width,
+            down_coin_distance / level_height,
+            up_coin_distance / level_height,
+            l_goal_distance / level_width,
+            r_goal_distance / level_width,
+            down_goal_distance / level_height,
+            up_goal_distance / level_height
         ], dtype=np.float32)
         
         return obs
