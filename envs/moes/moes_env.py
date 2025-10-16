@@ -169,6 +169,11 @@ class MoesEnv(gym.env):
             y_coord / level_height,
             x_coord / level_width,
             grounded,
+            l_baddie_distance / level_width,
+            r_baddie_distance / level_width,
+            down_baddie_distance / level_height,
+            up_baddie_distance / level_height,
+
 
         ], dtype=np.float32)
 
