@@ -330,3 +330,6 @@ level12 = {"num":12 ,"map":
   "background image":"cavebg.png",
    "music":"cavetheme.ogg",
           "decor":["cavetree1.png","cavetree2.png","cavebush.png"] }
+
+# Olly added - aids in easily accessing any map at any time
+all_levels = [level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12]

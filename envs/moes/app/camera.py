@@ -2,6 +2,7 @@ import pygame.sprite
 
 import utilities
 
+# Note: Level size in pixels as comparing screen size (pixels) to it directly
 class Camera():
     def __init__(self, target, screensize,levelsize,speed = 1):
         self.offset = (0, 0)

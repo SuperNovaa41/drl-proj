@@ -165,6 +165,7 @@ class Platformer(state.State):
             i.kill()
     
     # Changes wierd letters to a map, associating ie g with ground platform, c with coins
+    # Parsing happens in levelselect before player enters level
     def levelparse(self,level):
 
         self.lvlclear()
@@ -294,3 +295,7 @@ class Platformer(state.State):
                 x += 8
             y += 8
             x = 0
+
+    # Olly added
+    def get_current_level(self):
+        return self.currentlvl

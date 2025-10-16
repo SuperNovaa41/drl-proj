@@ -38,6 +38,7 @@ class LevelSelect(state.State):
                 self.exit()
                 self.musicplaying = False
                 self.game.platformer.enter()
+                # Passing in level to level parse, ie level = self.game.platformer.level1
                 if self.current_sel == 0:
                     self.game.platformer.levelparse(self.game.platformer.level1)
                 if self.current_sel == 1:
