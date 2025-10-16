@@ -237,11 +237,8 @@ class GameEnv(gym.Env):
         self.collide = [0, 0, 0, 0]
 
         if not self.game_over and not self.win:
-            reward += 0.1
-
             self.coin_penalty -= 1
 
-            
             temp_dist = 0
             if self.get_closest_coin() is not None:
                 cc = self.get_closest_coin()
@@ -250,13 +247,13 @@ class GameEnv(gym.Env):
                 temp_dist = np.linalg.norm(cc_pos - p_pos)
                 reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
                 if action == 0:
-                    reward -= 1 if (cc.x > self.player.x) else 0
+                    reward -= 0.1 if (cc.x > self.player.x) else 0
                 if action == 1:
-                    reward -= 1 if (cc.x < self.player.x) else 0
+                    reward -= 0.1 if (cc.x < self.player.x) else 0
 
                 if not self.line_of_sight and (self.player.y < cc.y or self.player.y > cc.y):
                     if self.coin_penalty == 0:
-                        self.coin_modifier -= 1.0
+                        self.coin_modifier -= 0.5 
 
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
@@ -304,14 +301,14 @@ class GameEnv(gym.Env):
                         self.player.top = tile.bottom
                         self.vel_y = 0
                         self.collide[2] = 1
-                        reward -= 100
+                        reward -= 10
                     break
 
             for coin in self.coins[:]:
                 if self.player.colliderect(coin):
                     self.coins.remove(coin)
                     self.score += 10
-                    reward += 100
+                    reward += 10
                     self.remaining_coins -= 1
 
                     self.coin_penalty = 50
@@ -319,7 +316,7 @@ class GameEnv(gym.Env):
 
                     if len(self.coins) == 0:
                         self.win = True
-                        reward += 1000
+                        reward += 100
             for enemy in self.enemeies:
                 if not enemy[2]: # skip if dead 
                     continue
@@ -349,16 +346,16 @@ class GameEnv(gym.Env):
                         enemy[2] = False # kill enemy
                         self.vel_y = self.jump_force // 2
                         self.score += 50
-                        reward += 2 
+                        reward += 2
                         self.remaining_enemies -= 1
                     else:
                         self.lives -= 1
                         self.invincible_timer = 120
-                        reward -= 10
+                        reward -= 5
                         
                         if self.lives <= 0:
                             self.game_over = True
-                            reward -= 1000
+                            reward -= 100
                         else:
                             self.vel_y = self.jump_force // 3
                             self.player.x += -30 if self.player_direction == 1 else 30
@@ -368,7 +365,7 @@ class GameEnv(gym.Env):
                 reward -= 10
                 if self.lives <= 0:
                     self.game_over = True
-                    reward -= 1000
+                    reward -= 10
                 else:
                     self._reset_player()
 
@@ -390,7 +387,7 @@ class GameEnv(gym.Env):
 
         if self.coin_penalty == 0:
             self.coin_penalty = 50
-            self.coin_modifier -= 0.2
+            self.coin_modifier -= 0.1
 
         reward += self.coin_modifier
 

@@ -1,3 +1,4 @@
+#!/bin/python
 from stable_baselines3 import PPO
 from env import GameEnv
 
