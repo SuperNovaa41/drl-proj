@@ -9,8 +9,10 @@ import math
 """
 TODO:
 
-    add a reward for going closer to enemy
-    punish more for dying
+i think i have way too mcuh
+negative reward
+
+work on more positives and less negatives (to be balanced)
 
 """
 
@@ -68,10 +70,10 @@ class GameEnv(gym.Env):
         """
         self.observation_space = spaces.Box(
             low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                          dtype=np.float32),
             high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
         )
@@ -94,7 +96,6 @@ class GameEnv(gym.Env):
             closest_coin = None
         return closest_coin
 
-    # TODO: need to check for alive status
     def get_closest_enemy(self):
         closest_rect = self.enemeies[0][0]
         for enemy in self.enemeies:
@@ -119,6 +120,7 @@ class GameEnv(gym.Env):
 
         line_of_sight = 1.0
         self.line_of_sight = True
+        ground_below = 0.0
         for tile, _ in self.tiles:
             cc = self.get_closest_coin()
             if cc is None:
@@ -126,6 +128,8 @@ class GameEnv(gym.Env):
             if tile.clipline((self.player.x, self.player.y), (cc.x, cc.y)):
                 line_of_sight = 0.0
                 self.line_of_sight = False
+            if tile.clipline((self.player.x, self.player.y), (self.player.x, self.screen_height)):
+                ground_below = 1.0
 
         left_or_right = 0.5
         if closest_coin is not None:
@@ -134,6 +138,7 @@ class GameEnv(gym.Env):
         above_or_below = 0.5
         if closest_coin is not None:
             above_or_below = 1 if (closest_coin.y < self.player.y) else 0
+
 
 
 
@@ -153,7 +158,8 @@ class GameEnv(gym.Env):
                          left_or_right,
                          above_or_below,
                          self.get_closest_tile().x / self.screen_width,
-                         self.get_closest_tile().y / self.screen_height
+                         self.get_closest_tile().y / self.screen_height,
+                         ground_below
                          ])
 
     def _reset_player(self):
@@ -305,7 +311,7 @@ class GameEnv(gym.Env):
                 if self.player.colliderect(coin):
                     self.coins.remove(coin)
                     self.score += 10
-                    reward += 1
+                    reward += 100
                     self.remaining_coins -= 1
 
                     self.coin_penalty = 50
@@ -352,17 +358,17 @@ class GameEnv(gym.Env):
                         
                         if self.lives <= 0:
                             self.game_over = True
-                            reward -= 100
+                            reward -= 1000
                         else:
                             self.vel_y = self.jump_force // 3
                             self.player.x += -30 if self.player_direction == 1 else 30
 
             if self.player.y > self.screen_height + 100: # fell off world
                 self.lives -= 1
-                reward -= 50
+                reward -= 10
                 if self.lives <= 0:
                     self.game_over = True
-                    reward -= 100
+                    reward -= 1000
                 else:
                     self._reset_player()
 
@@ -389,7 +395,8 @@ class GameEnv(gym.Env):
         reward += self.coin_modifier
 
 
-        print("Total reward for this step: " + str(reward))
+        #print("Total reward for this step: " + str(reward))
+        #print(self._get_obs())
 
         return self._get_obs(), reward, terminated, False, {}
             

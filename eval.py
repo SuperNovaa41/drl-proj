@@ -1,10 +1,10 @@
 #!/bin/python
 
-from stable_baselines3 import DQN
+from stable_baselines3 import PPO
 from env import GameEnv
 
 env = GameEnv()
-model = DQN.load("game_dqn", env=env)
+model = PPO.load("game_dqn", env=env)
 
 obs, info = env.reset()
 ep_reward = 0
