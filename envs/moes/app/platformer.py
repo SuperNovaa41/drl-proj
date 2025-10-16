@@ -132,7 +132,7 @@ class Platformer(state.State):
         self.hud.render(self.tempsurf)
         self.game.screen.blit(pygame.transform.scale(self.tempsurf,(800,640)),(0,0))
 
-    # Says there is a certain tile for the direction [down, up, right, left]
+    # There is a certain tile for the direction [down, up, right, left]
     # g = ground, b = the platform player can down arrow to go through
     def getsurroundings(self,letter, map,x,y):
         loh = [0, 0, 0, 0]

@@ -14,7 +14,7 @@ class MoesEnv(gym.env):
     def __init__(self):
         # flappy bird version
         # self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
-        self.observation_space = 
+        #self.observation_space = 
         # 0 - do nothing, 1 go left, 2 go right, 3 down, 4 jump
         self.action_space = spaces.Discrete(5)
         self.game = game()
@@ -76,6 +76,7 @@ class MoesEnv(gym.env):
     def close(self):
         pass
 
+    # Helpers
     def _get_observation(self):
         # Move these later cuz need in reset function
         level_size = self.game.platformer.camera.get_level_size()
@@ -90,7 +91,6 @@ class MoesEnv(gym.env):
         xt = x_coord // 8
         yt = y_coord // 8
         grounded = self.game.platformer.player.get_grounded()
-        step = 1
 
         # Holds an int from 1-12 representing level number
         current_level = self.game.platformer.get_current_level()
@@ -99,71 +99,29 @@ class MoesEnv(gym.env):
         current_map = level.all_levels[current_level-1]["map"]
 
         # Enemies and spikes repped by these symbols
-        baddie_letters = ["C", "D", "B", "M", "W", "Q", "J", "8", "S"]
+        baddies = {"C", "D", "B", "M", "W", "Q", "J", "8", "S"}
+        coin = {"c"}
 
         # Need to add 
         # Distance to next jumping platform (x and y) - add later
+        # floating platform could be above or below me, it has "" underneath it in level map
+        # might need to later add in distance to wall - after see agent working think about
+        
+        # Getting nearest enemy distances: Left, Right, Up, Down
+        l_baddie_distance = self._get_distance_item_left(yt, xt, baddies, current_map, level_width)
+        r_baddie_distance = self._get_distance_item_right(yt, xt, baddies, current_map, level_width)
+        down_baddie_distance = self._get_distance_item_down(self, yt, xt, baddies, current_map, level_height)
+        up_baddie_distance = self._get_distance_item_up(self, yt, xt, baddies, current_map, level_height)
 
-        # Distance to nearest enemy/spike (x and y) - current
-        # for x, start at x coords, iterate till hit an enemy, or hit the end of map, 
-        # want to return the distance
+        # Getting nearest coin distances
+        l_coin_distance = self._get_distance_item_left(yt, xt, coin, current_map, level_width)
+        r_coin_distance = self._get_distance_item_right(yt, xt, coin, current_map, level_width)
+        down_coin_distance = self._get_distance_item_down(self, yt, xt, coin, current_map, level_height)
+        up_coin_distance = self._get_distance_item_up(self, yt, xt, coin, current_map, level_height)
 
-        l_baddie_distance = level_width
-
-        # distance_to_enemy_left
-        while (xt - step >= 0):
-            if current_map[yt][xt-step] in baddie_letters:
-                l_baddie_distance = step * 8
-                break
-            step += 1
-
-        # reset
-        step = 1
-
-        # Default enemies max distance away - means no enemies
-        r_baddie_distance = level_width
-
-        # distance_to_enemy_right
-        while (xt + step < level_width_tiles):
-            # check map indices by first getting current level, then get cooresponding map
-            #if current_map[yt][xt] == "C" or current_map[yt][xt] == "D" or current_map[yt][xt] == "B"
-            if current_map[yt][xt+step] in baddie_letters:
-                # from tile distance back to pixel distance
-                r_baddie_distance = step * 8
-                break
-            step += 1
-
-        step = 1
-
-        down_baddie_distance = level_height
-
-        # Note: Pygame coords usually have top of screen as 0 and y increases as you go down
-        # distance to baddie below
-        while (yt + step < level_height_tiles):
-            if current_map[yt+step][xt] in baddie_letters:
-                down_baddie_distance = step*8
-                break
-            step +=1
-
-        step = 1
-
-        # distance to spike above
-        up_baddie_distance = level_height
-
-        while (yt - step >= 0):
-            if current_map[yt-step][xt] in baddie_letters:
-                up_baddie_distance = step*8
-                break
-            step +=1
-
-        step = 1
-
-        # Distance to coin (x and y)
         # Distance to goal (x and y)
 
-        # might need to later add in distance to wall - after see agent working think about
-
-        # floating platform could be above or below me, it has "" underneath it in level map
+        
 
         obs = np.array([
             y_coord / level_height,
@@ -176,11 +134,62 @@ class MoesEnv(gym.env):
 
 
         ], dtype=np.float32)
-
         
+        return obs
+    
+    # Searching to the right for the nearest enemy/coin/flag
+    # From our x position (in tiles), increment by 1 until we hit an enemy, to get distance to it
+    def _get_distance_item_right(self, yt, xt, target_set, current_map, level_width):
+        # At first, assuming an enemy is extremely far away/non-existant
+        distance = level_width
+        level_width_tiles = level_width  // 8
+        step = 1
+        while (xt + step < level_width_tiles):
+            # Accessing coords of level map to see whats there
+            if current_map[yt][xt+step] in target_set:
+                distance = step * 8
+                break
+            step += 1
 
-        
-        
-        return
+        return distance
+    
+    def _get_distance_item_left(self, yt, xt, target_set, current_map, level_width):
+        distance = level_width
+        step = 1
+        # leftmost edge of level map is 0
+        while (xt - step >= 0):
+            if current_map[yt][xt-step] in target_set:
+                distance = step * 8
+                break
+            step += 1
 
-    pass
+        return distance
+    
+    # Note: Pygame coords usually have top of screen as 0 and y increases as you go down
+    def _get_distance_item_down(self, yt, xt, target_set, current_map, level_height):
+        distance = level_height
+        level_height_tiles = level_height // 8
+        step = 1
+        while (yt + step < level_height_tiles):
+            if current_map[yt+step][xt] in target_set:
+                distance = step*8
+                break
+            step += 1
+        
+        return distance
+    
+    def _get_distance_item_up(self, yt, xt, target_set, current_map, level_height):
+        distance = level_height
+        step = 1
+        while (yt - step >= 0):
+            if current_map[yt-step][xt] in target_set:
+                distance = step*8
+                break
+            step += 1
+        
+        return distance
+
+    
+
+
+    
