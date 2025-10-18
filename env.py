@@ -70,10 +70,10 @@ class GameEnv(gym.Env):
         """
         self.observation_space = spaces.Box(
             low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0],# , 0.0, 0.0, 0.0],
                          dtype=np.float32),
             high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0], #, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
         )
@@ -147,7 +147,7 @@ class GameEnv(gym.Env):
                          closest_rect.x / self.screen_width,
                          closest_rect.y / self.screen_height,
                          (closest_coin.x / self.screen_width) if closest_coin is not None else 1,
-                         closest_coin.y / self.screen_height if closest_coin is not None else 1,
+                         (closest_coin.y / self.screen_height) if closest_coin is not None else 1,
                          self.collide[3],
                          self.collide[2],
                          self.collide[0],
@@ -157,9 +157,9 @@ class GameEnv(gym.Env):
                          line_of_sight,
                          left_or_right,
                          above_or_below,
-                         self.get_closest_tile().x / self.screen_width,
-                         self.get_closest_tile().y / self.screen_height,
-                         ground_below
+                         #self.get_closest_tile().x / self.screen_width,
+                         #self.get_closest_tile().y / self.screen_height,
+                         #ground_below
                          ])
 
     def _reset_player(self):
@@ -250,6 +250,12 @@ class GameEnv(gym.Env):
                     reward -= 0.1 if (cc.x > self.player.x) else 0
                 if action == 1:
                     reward -= 0.1 if (cc.x < self.player.x) else 0
+                """
+                if action == 2 and not self.jump and self.vel_y >= -2 and cc.y < self.player.y :
+                    reward += 0.01
+                """
+                    
+                    
 
                 if not self.line_of_sight and (self.player.y < cc.y or self.player.y > cc.y):
                     if self.coin_penalty == 0:
