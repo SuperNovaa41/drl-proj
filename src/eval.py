@@ -1,12 +1,19 @@
 #!/bin/python
 
 from stable_baselines3 import PPO, DQN
-from env import GameEnv
 
 import numpy as np
 
 import argparse
 import os
+import sys
+
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.join(curr_dir, '..', 'env')
+
+sys.path.append(parent_dir)
+
+from mario.env import GameEnv
 
 """
 env = GameEnv()

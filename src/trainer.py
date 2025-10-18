@@ -29,7 +29,7 @@ model.save("game_dqn")
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_type", type=str, default="DQN")
+    parser.add_argument("--model_type", type=str, default="PPO")
     parser.add_argument("--timesteps", type=int, default=200_000)
     parser.add_argument("--reward_mode", type=str, default="coins", choices=["coins","enemies"])
     parser.add_argument("--seed", type=int, default=7)
