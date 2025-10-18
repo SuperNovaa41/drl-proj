@@ -37,12 +37,13 @@ def run_episode(model, reward_mode="coins", render=False):
     jump = 0
 
     while not (done or trunc):
-        action, _ = model.predict(obs, deterministic=True)
+        action, _ = model.predict(obs)
         left += int(action == 0)
         right += int(action == 1)
         jump += int(action == 2)
+        print(action)
 
-        obs, r, done, trunc, info = env.step(int(action))
+        obs, r, done, trunc, info = env.step(action)
         ep_reward += r
         steps += 1
 
@@ -74,7 +75,7 @@ def main():
         raise FileNotFoundError(f"Model not found: {args.model_path}.zip")
     
     os.makedirs(os.path.dirname(args.csv_out), exist_ok=True)
-    if (args.model_type == "PPO")
+    if (args.model_type == "PPO"):
         model = PPO.load(args.model_path)
     elif (args.model_type == "DQN"):
         model = DQN.load(args.model_path)
@@ -96,7 +97,7 @@ def main():
     mean_jump = float(np.mean([r["jumps"] for r in rows]))
 
     print(f"Episodes: {len(rows)}")
-    print(f"Mean reward: {mean_reward:.2f} +/- {std_reward.2f}")
+    print(f"Mean reward: {mean_reward:.2f} +/- {std_reward:.2f}")
     print(f"Mean left movements: {mean_left:.2f}")
     print(f"Mean right movements: {mean_right:.2f}")
     print(f"Mean jumps: {mean_jump:.2f}")

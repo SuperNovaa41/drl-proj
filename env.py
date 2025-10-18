@@ -260,20 +260,19 @@ class GameEnv(gym.Env):
                 cc_pos = np.array((cc.x, cc.y))
                 p_pos = np.array((self.player.x, self.player.y))
                 temp_dist = np.linalg.norm(cc_pos - p_pos)
-                reward += (1 - abs(temp_dist) / self.screen_width) * 0.1
+                reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
                 if action == 0:
-                    reward -= 0.5 if (cc.x > self.player.x) else 0
+                    reward -= 0.5 if (cc.x > self.player.x) else -0.5
                 if action == 1:
-                    reward -= 0.5 if (cc.x < self.player.x) else 0
+                    reward -= 0.5 if (cc.x < self.player.x) else -0.5
                 """
                 if action == 2 and not self.jump and self.vel_y >= -2 and cc.y < self.player.y :
                     reward += 0.01
                 """
-                """
                 if not self.line_of_sight and (self.player.y < cc.y or self.player.y > cc.y):
                     if self.coin_penalty == 0:
                         self.coin_modifier -= 0.5 
-                """
+            
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
 
@@ -408,10 +407,10 @@ class GameEnv(gym.Env):
             self.coin_penalty = 50
             self.coin_modifier -= 0.1
 
-        #reward += self.coin_modifier
+        reward += self.coin_modifier
 
 
-        #print("Total reward for this step: " + str(reward))
+        print("Total reward for this step: " + str(reward))
         #print(self._get_obs())
 
         return self._get_obs(), reward, terminated, False, {}
