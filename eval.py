@@ -63,7 +63,7 @@ def run_episode(model, reward_mode="coins", render=False):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--model_type", type=str, default="PPO")
+    p.add_argument("--model_type", type=str, default="DQN")
     p.add_argument("--model_path", type=str)
     p.add_argument("--episodes", type=int, default=10)
     p.add_argument("--render", type=int, default=0)

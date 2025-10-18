@@ -1,5 +1,5 @@
 #!/bin/python
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.logger import configure
 
@@ -23,6 +23,7 @@ model.save("game_dqn")
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model_type", type=str, default="DQN")
     parser.add_argument("--timesteps", type=int, default=200_000)
     parser.add_argument("--reward_mode", type=str, default="coins", choices=["coins","enemies"])
     parser.add_argument("--seed", type=int, default=7)
@@ -35,21 +36,26 @@ def main():
     os.makedirs(args.modeldir, exist_ok=True)
 
     env = make_env()
-
-    model = PPO(
-        policy="MlpPolicy",
-        env=env,
-        verbose=1,
-        tensorboard_log=args.logdir,
-        seed=args.seed,
-        n_steps=1024,
-        batch_size=256,
-        gamma=0.995,
-        gae_lambda=0.95,
-        n_epochs=10,
-        learning_rate=0.003,
-        clip_range=0.2,
-    )
+    
+    if args.model_type == "PPO":
+        model = PPO(
+            policy="MlpPolicy",
+            env=env,
+            verbose=1,
+            tensorboard_log=args.logdir,
+            seed=args.seed,
+        )
+    elif args.model_type == "DQN":
+        model = DQN(
+            policy="MlpPolicy",
+            env=env,
+            verbose=1,
+            tensorboard_log=args.logdir,
+            seed=args.seed,
+        )
+    else:
+        print(f"No model type {args.model_type}.")
+        exit(-1)
 
     new_logger = configure(args.logdir, ["stdout", "tensorboard"])
     model.set_logger(new_logger)

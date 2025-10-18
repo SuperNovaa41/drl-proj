@@ -9,10 +9,8 @@ import math
 """
 TODO:
 
-i think i have way too mcuh
-negative reward
-
-work on more positives and less negatives (to be balanced)
+    add a reward for going closer to enemy
+    punish more for dying
 
 """
 
@@ -35,10 +33,10 @@ class GameEnv(gym.Env):
         self.speed = 5
         self.tile_size = 50
 
-        self.maps = 3
+        self.maps = 2
         self.current_map = 1
 
-        self.line_of_sight = False
+        self.paralyze_x = 0
 
         self.max_coins = 0
         self.remaining_coins = 0
@@ -61,23 +59,19 @@ class GameEnv(gym.Env):
         self.action_space = spaces.Discrete(3)
 
 
-
-
         """
             observation space will be:
-            tile top left, tile top, tile top right
-            tile left, tile right
-            tile bottom left, tile bottom, tile bottom right
             player x, player y, nearest enemy x, nearest enemy y,
             nearest coin x, nearest coin y, floor underneath,
-            floor above, wall left, wall right, remaining coins, remaninig enemies,    line of sight, direction
+            floor above, wall left, wall right, remaining coins, remaninig enemies,
+            line of sight, direction
         """
         self.observation_space = spaces.Box(
-            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                          dtype=np.float32),
-            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
         )
@@ -85,12 +79,6 @@ class GameEnv(gym.Env):
         self.reset_state()
         
         self.screen, self.clock = None, None
-
-    def tile_at_pos(self, pos_x, pos_y):
-        for tile, _ in self.tiles:
-            if tile.collidepoint(pos_x, pos_y):
-                return True
-        return False
 
     def get_closest_coin(self):
         if len(self.coins) > 0:
@@ -106,49 +94,29 @@ class GameEnv(gym.Env):
             closest_coin = None
         return closest_coin
 
+    # TODO: need to check for alive status
     def get_closest_enemy(self):
         closest_rect = self.enemeies[0][0]
         for enemy in self.enemeies:
             if abs(self.player.x - enemy[0].x) < abs(self.player.x - closest_rect.x):
                 closest_rect = enemy[0]
         return closest_rect
-    
-    def get_closest_tile(self):
-        closest_tile = self.tiles[0][0]
-        for tile, _ in self.tiles:
-            player_pos = np.array((self.player.x, self.player.y))
-            tile_pos = np.array((tile.x, tile.y))
-            ct_pos = np.array((closest_tile.x, closest_tile.y))
-
-            if abs(np.linalg.norm(player_pos - tile_pos)) < abs(np.linalg.norm(player_pos - ct_pos)):
-                closest_tile = tile
-        return closest_tile
 
     def _get_obs(self):
         closest_rect = self.get_closest_enemy()
         closest_coin = self.get_closest_coin()
 
         line_of_sight = 1.0
-        self.line_of_sight = True
-        ground_below = 0.0
         for tile, _ in self.tiles:
             cc = self.get_closest_coin()
             if cc is None:
                 break
             if tile.clipline((self.player.x, self.player.y), (cc.x, cc.y)):
                 line_of_sight = 0.0
-                self.line_of_sight = False
-            if tile.clipline((self.player.x, self.player.y), (self.player.x, self.screen_height)):
-                ground_below = 1.0
 
         left_or_right = 0.5
         if closest_coin is not None:
             left_or_right = 1 if (closest_coin.x > self.player.x) else 0
-
-        above_or_below = 0.5
-        if closest_coin is not None:
-            above_or_below = 1 if (closest_coin.y < self.player.y) else 0
-
 
 
 
@@ -157,7 +125,7 @@ class GameEnv(gym.Env):
                          closest_rect.x / self.screen_width,
                          closest_rect.y / self.screen_height,
                          (closest_coin.x / self.screen_width) if closest_coin is not None else 1,
-                         (closest_coin.y / self.screen_height) if closest_coin is not None else 1,
+                         closest_coin.y / self.screen_height if closest_coin is not None else 1,
                          self.collide[3],
                          self.collide[2],
                          self.collide[0],
@@ -165,16 +133,7 @@ class GameEnv(gym.Env):
                          self.remaining_coins / self.max_coins,
                          self.remaining_enemies / self.max_enemies,
                          line_of_sight,
-                         left_or_right,
-                         above_or_below,
-                         self.tile_at_pos(self.player.x - self.tile_size, self.player.y - self.tile_size), # top left
-                         self.tile_at_pos(self.player.x, self.player.y - self.tile_size), # top 
-                         self.tile_at_pos(self.player.x + self.tile_size, self.player.y - self.tile_size), # top right
-                         self.tile_at_pos(self.player.x - self.tile_size, self.player.y), # left
-                         self.tile_at_pos(self.player.x + self.tile_size, self.player.y), # right
-                         self.tile_at_pos(self.player.x - self.tile_size, self.player.y + self.tile_size), # bottom left 
-                         self.tile_at_pos(self.player.x, self.player.y + self.tile_size), # bottom
-                         self.tile_at_pos(self.player.x + self.tile_size, self.player.y + self.tile_size), # bottom right 
+                         left_or_right
                          ])
 
     def _reset_player(self):
@@ -252,7 +211,19 @@ class GameEnv(gym.Env):
         self.collide = [0, 0, 0, 0]
 
         if not self.game_over and not self.win:
+            reward += 0.1
+
             self.coin_penalty -= 1
+
+            if self.coin_penalty == 0:
+                self.coin_penalty = 50
+                if self.paralyze_x >= (self.player.x - (self.tile_size / 2)) and self.paralyze_x <= (self.player.x + (self.tile_size / 2)):
+                    reward -= 5
+
+                self.paralyze_x = self.player.x
+                self.coin_modifier -= 0.2
+
+            reward += self.coin_modifier
 
             temp_dist = 0
             if self.get_closest_coin() is not None:
@@ -262,17 +233,10 @@ class GameEnv(gym.Env):
                 temp_dist = np.linalg.norm(cc_pos - p_pos)
                 reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
                 if action == 0:
-                    reward -= 0.5 if (cc.x > self.player.x) else -0.5
+                    reward -= 1 if (cc.x > self.player.x) else 0
                 if action == 1:
-                    reward -= 0.5 if (cc.x < self.player.x) else -0.5
-                """
-                if action == 2 and not self.jump and self.vel_y >= -2 and cc.y < self.player.y :
-                    reward += 0.01
-                """
-                if not self.line_of_sight and (self.player.y < cc.y or self.player.y > cc.y):
-                    if self.coin_penalty == 0:
-                        self.coin_modifier -= 0.5 
-            
+                    reward -= 1 if (cc.x < self.player.x) else 0
+
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
 
@@ -319,14 +283,14 @@ class GameEnv(gym.Env):
                         self.player.top = tile.bottom
                         self.vel_y = 0
                         self.collide[2] = 1
-                        reward -= 10
+                        reward -= 100
                     break
 
             for coin in self.coins[:]:
                 if self.player.colliderect(coin):
                     self.coins.remove(coin)
                     self.score += 10
-                    reward += 10
+                    reward += 1
                     self.remaining_coins -= 1
 
                     self.coin_penalty = 50
@@ -334,7 +298,7 @@ class GameEnv(gym.Env):
 
                     if len(self.coins) == 0:
                         self.win = True
-                        reward += 100
+                        reward += 1000
             for enemy in self.enemeies:
                 if not enemy[2]: # skip if dead 
                     continue
@@ -364,12 +328,12 @@ class GameEnv(gym.Env):
                         enemy[2] = False # kill enemy
                         self.vel_y = self.jump_force // 2
                         self.score += 50
-                        reward += 2
+                        reward += 2 
                         self.remaining_enemies -= 1
                     else:
                         self.lives -= 1
                         self.invincible_timer = 120
-                        reward -= 5
+                        reward -= 10
                         
                         if self.lives <= 0:
                             self.game_over = True
@@ -380,10 +344,10 @@ class GameEnv(gym.Env):
 
             if self.player.y > self.screen_height + 100: # fell off world
                 self.lives -= 1
-                reward -= 10
+                reward -= 50
                 if self.lives <= 0:
                     self.game_over = True
-                    reward -= 10
+                    reward -= 100
                 else:
                     self._reset_player()
 
@@ -403,15 +367,7 @@ class GameEnv(gym.Env):
         if self.steps >= self.max_steps:
             terminated = True
 
-        if self.coin_penalty == 0:
-            self.coin_penalty = 50
-            self.coin_modifier -= 0.1
-
-        reward += self.coin_modifier
-
-
-        print("Total reward for this step: " + str(reward))
-        #print(self._get_obs())
+        #print("Total reward for this step: " + str(reward))
 
         return self._get_obs(), reward, terminated, False, {}
             
