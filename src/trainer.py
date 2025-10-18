@@ -3,10 +3,16 @@ from stable_baselines3 import PPO, DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.logger import configure
 
+import sys
 import os
 import argparse
 
-from env import GameEnv
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.join(curr_dir, '..', 'env')
+
+sys.path.append(parent_dir)
+
+from mario.env import GameEnv
 
 def make_env():
     env = GameEnv()
@@ -27,8 +33,8 @@ def main():
     parser.add_argument("--timesteps", type=int, default=200_000)
     parser.add_argument("--reward_mode", type=str, default="coins", choices=["coins","enemies"])
     parser.add_argument("--seed", type=int, default=7)
-    parser.add_argument("--logdir", type=str, default="./logs")
-    parser.add_argument("--modeldir", type=str, default="./models")
+    parser.add_argument("--logdir", type=str, default="../logs")
+    parser.add_argument("--modeldir", type=str, default="../models")
 
     args = parser.parse_args()
 

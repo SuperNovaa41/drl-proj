@@ -5,20 +5,16 @@ import numpy as np
 from gymnasium import spaces
 import math
 
-
-"""
-TODO:
-
-    add a reward for going closer to enemy
-    punish more for dying
-
-"""
+import os
 
 class GameEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
 
     def load_map(self):
-        map_str = 'maps/map_' + str(self.current_map)
+
+        path = os.path.dirname(os.path.abspath(__file__))
+
+        map_str = path + '/maps/map_' + str(self.current_map)
         with open(map_str, 'r') as file:
             self.level_map = []
             for line in file:
@@ -94,7 +90,6 @@ class GameEnv(gym.Env):
             closest_coin = None
         return closest_coin
 
-    # TODO: need to check for alive status
     def get_closest_enemy(self):
         closest_rect = self.enemeies[0][0]
         for enemy in self.enemeies:
