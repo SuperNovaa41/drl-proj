@@ -4,6 +4,7 @@ from gymnasium import spaces
 from app.game import game
 from app import level
 import numpy as np
+import random
 
 # episode in context of a platformer = player playing uninterupted (ie til hitting goal or dieing)
 
@@ -11,31 +12,46 @@ import numpy as np
 # pass in game dict storing movements true/false
 class MoesEnv(gym.env):
 
-    def __init__(self):
-        # flappy bird version
-        # self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
-        #self.observation_space = 
+    def __init__(self, seed=None):
+        super().__init__()
+        self._rnd = random.Random(seed)
+        self._np_rng = np.random.default_rng(seed)
         # 0 - do nothing, 1 go left, 2 go right, 3 down, 4 jump
         self.action_space = spaces.Discrete(5)
-        self.game = game()
+        
+        # Internal state
+        self.reset(seed=seed)
 
-    # reset acts like the game loop with step being like the frame
-    # in gameloop, gameloop acts like the episode with a loop within controlling the frames
-    # so update and render happenning in each frame
-    # Here step is like a frame, want to call update and render within step to handle
-    # action + environment change + reward for 1 frame
+        self.game = game()
 
     # Reset the game to its initial state (player position, level, score, enemies, etc.).
     # Happens on termination/truncation (new level, player death, agent error)
-    def reset(self):
+    def reset(self, *, seed=None, options=None):
+        super().reset(seed=seed)
+        if seed is not None:
+            self._rnd.seed(seed)
+            self._np_rng = np.random.default_rng(seed)
+
+        # For now, assume level 1 but later
         # Have an if statement with reason for termination
         # to advance level if termination
 
-        # reset position at level start, health (in platformer), coins from level
-        # level timer (this should default reset through game)
+        # Resets level at spawn with 0 coins and 3 lives
+        self.game.platformer.set_coins(0)
+        self.game.platformer.set_lives(3)
+        # This just starts level 1
+        self.game.platformer.enter()
+        self.game.platformer.levelparse(self.game.platformer.level1)
 
+        obs = self._get_observation()
 
-        pass
+        info = {
+            "coins_collected": self.game.platformer.get_coins(),
+            # Will be win state if level complete
+            "is_level_complete": self.game.curr_state
+        }
+
+        return obs, info
 
     # one decision point, ie movement 1 to the right, or one jump
     # many of these per episode
@@ -72,7 +88,6 @@ class MoesEnv(gym.env):
         if terminated:
             reward -= 1.0
 
-        # observation tied to update function, need to put it as a vector somehow
         obs = self._get_observation()
 
         # info
@@ -89,7 +104,12 @@ class MoesEnv(gym.env):
         self.game.render()
 
     def close(self):
-        pass
+        if self._pygame:
+            import pygame
+            pygame.quit()
+            self._pygame = None
+            self._screen = None
+            self._clock = None
 
     # Helpers
     def _get_observation(self):
@@ -122,6 +142,8 @@ class MoesEnv(gym.env):
         # floating platform could be above or below me, it has "" underneath it in level map
         # distance to wall - after see agent working think about
         
+        # Might change these distances to euclidean (x and y) so each would have 2 for left and right
+        # possibly even just 1 for each
         # Getting nearest enemy distances: Left, Right, Up, Down
         l_baddie_distance = self._get_distance_item_left(yt, xt, baddies, current_map, level_width)
         r_baddie_distance = self._get_distance_item_right(yt, xt, baddies, current_map, level_width)

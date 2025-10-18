@@ -123,6 +123,7 @@ class game():
                 self.actions["up"] = True
         except:
             pass
+        # Will call ie update function in spashscreen class, update from gameover, etc
         self.curr_state.update()
 
     def render(self):
@@ -131,7 +132,24 @@ class game():
         pygame.display.update()
     def gameloop(self):
         self.running = True
-        self.spash.enter()
+        # originally here, starts from intro screen to start, to menu select, to game
+        # for a human player
+        # Spash is a state object, enter() defined in states class
+        # self.spash.enter()
+        
+        # starts from world map
+        #self.levelselection.enter()
+
+        # Olly added, this starts from level 1 - problem, on beat player taken back to main menu
+        self.platformer.set_coins(50)
+        self.platformer.set_lives(5)
+        self.platformer.enter()
+        self.platformer.levelparse(self.platformer.level1)
+
+        # check what happens when we hit win state
+        # on win state class exit is being called taking us to the previous state - level selection
+        # solution, no exit on win?
+
         while self.running:
             # This updating actions
             self.update()

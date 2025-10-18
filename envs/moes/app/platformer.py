@@ -31,6 +31,7 @@ class Platformer(state.State):
         self.level10 = level.level10
         self.level11 = level.level11
         self.level12 = level.level12
+        # 0 for in menu, changed by Olly to 1 for ai starting from level 1
         self.currentlvl = 0
         self.backgroundimage = None
         self.coinimage = utilities.loadImage(os.path.join("data","images"),"coin.png",1)
@@ -300,6 +301,16 @@ class Platformer(state.State):
     def get_current_level(self):
         return self.currentlvl
     
+    # will need a set current level
+    def set_current_level(self, level):
+        self.currentlvl = level
+    
     # Olly Added
     def get_coins(self):
         return self.coins
+    
+    def set_coins(self, amount):
+        self.coins = amount
+
+    def set_lives(self, amount):
+        self.lives = amount
