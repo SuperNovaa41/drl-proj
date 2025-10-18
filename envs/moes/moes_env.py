@@ -5,17 +5,18 @@ from app.game import game
 from app import level
 import numpy as np
 import random
+import pygame
+import math
 
-# episode in context of a platformer = player playing uninterupted (ie til hitting goal or dieing)
-
-# will want to pass in character object from app folder
-# pass in game dict storing movements true/false
 class MoesEnv(gym.env):
 
-    def __init__(self, seed=None):
+    # add reward mode later
+    def __init__(self, render_mode = None, seed=None, reward_mode = None):
         super().__init__()
+        self.render_mode = render_mode
         self._rnd = random.Random(seed)
         self._np_rng = np.random.default_rng(seed)
+        self.reward_mode = reward_mode
         # 0 - do nothing, 1 go left, 2 go right, 3 down, 4 jump
         self.action_space = spaces.Discrete(5)
         
@@ -61,8 +62,10 @@ class MoesEnv(gym.env):
 
         # terminated = beat level (hit flag) or died (lost all hearts)
         # through transition to win or death state
+        # here want to advance level
         if self.game.curr_state == self.game.winscreen:
             terminated = True
+        # here want to restart level
         elif self.game.curr_state == self.game.deathscreen:
             terminated = True
         else:
@@ -88,6 +91,8 @@ class MoesEnv(gym.env):
         if terminated:
             reward -= 1.0
 
+        # could calculate x and y coords here, then pass in here, to use above for distance from flag
+        # for rewards
         obs = self._get_observation()
 
         # info
@@ -101,15 +106,17 @@ class MoesEnv(gym.env):
         return obs, reward, terminated, truncated, info 
 
     def render(self):
-        self.game.render()
+        if self.render_mode == "rgb_array":
+            self.game.render()
+            arr = pygame.surfarray.array3d(self.game.screen)
+            return np.transpose(arr, (1, 0, 2))
+        elif self.render_mode == "human":
+            self.game.render()
+        else:
+            return None
 
     def close(self):
-        if self._pygame:
-            import pygame
-            pygame.quit()
-            self._pygame = None
-            self._screen = None
-            self._clock = None
+        pygame.quit()
 
     # Helpers
     def _get_observation(self):
