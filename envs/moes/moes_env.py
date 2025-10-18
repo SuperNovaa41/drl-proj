@@ -17,6 +17,8 @@ class MoesEnv(gym.env):
         self._rnd = random.Random(seed)
         self._np_rng = np.random.default_rng(seed)
         self.reward_mode = reward_mode
+        high = np.ones((15,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
         # 0 - do nothing, 1 go left, 2 go right, 3 down, 4 jump
         self.action_space = spaces.Discrete(5)
         
@@ -49,6 +51,7 @@ class MoesEnv(gym.env):
         info = {
             "coins_collected": self.game.platformer.get_coins(),
             # Will be win state if level complete
+            # could change to levels completed and increment when it beats a level
             "is_level_complete": self.game.curr_state
         }
 
