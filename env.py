@@ -61,19 +61,23 @@ class GameEnv(gym.Env):
         self.action_space = spaces.Discrete(3)
 
 
+
+
         """
             observation space will be:
+            tile top left, tile top, tile top right
+            tile left, tile right
+            tile bottom left, tile bottom, tile bottom right
             player x, player y, nearest enemy x, nearest enemy y,
             nearest coin x, nearest coin y, floor underneath,
-            floor above, wall left, wall right, remaining coins, remaninig enemies,
-            line of sight, direction
+            floor above, wall left, wall right, remaining coins, remaninig enemies,    line of sight, direction
         """
         self.observation_space = spaces.Box(
             low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0],# , 0.0, 0.0, 0.0],
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                          dtype=np.float32),
             high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0], #, 1.0, 1.0, 1.0],
+                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
         )
@@ -81,6 +85,12 @@ class GameEnv(gym.Env):
         self.reset_state()
         
         self.screen, self.clock = None, None
+
+    def tile_at_pos(self, pos_x, pos_y):
+        for tile, _ in self.tiles:
+            if tile.collidepoint(pos_x, pos_y):
+                return True
+        return False
 
     def get_closest_coin(self):
         if len(self.coins) > 0:
@@ -157,9 +167,14 @@ class GameEnv(gym.Env):
                          line_of_sight,
                          left_or_right,
                          above_or_below,
-                         #self.get_closest_tile().x / self.screen_width,
-                         #self.get_closest_tile().y / self.screen_height,
-                         #ground_below
+                         self.tile_at_pos(self.player.x - self.tile_size, self.player.y - self.tile_size), # top left
+                         self.tile_at_pos(self.player.x, self.player.y - self.tile_size), # top 
+                         self.tile_at_pos(self.player.x + self.tile_size, self.player.y - self.tile_size), # top right
+                         self.tile_at_pos(self.player.x - self.tile_size, self.player.y), # left
+                         self.tile_at_pos(self.player.x + self.tile_size, self.player.y), # right
+                         self.tile_at_pos(self.player.x - self.tile_size, self.player.y + self.tile_size), # bottom left 
+                         self.tile_at_pos(self.player.x, self.player.y + self.tile_size), # bottom
+                         self.tile_at_pos(self.player.x + self.tile_size, self.player.y + self.tile_size), # bottom right 
                          ])
 
     def _reset_player(self):
@@ -245,22 +260,20 @@ class GameEnv(gym.Env):
                 cc_pos = np.array((cc.x, cc.y))
                 p_pos = np.array((self.player.x, self.player.y))
                 temp_dist = np.linalg.norm(cc_pos - p_pos)
-                reward += (1 - abs(temp_dist) / self.screen_width) * 0.05
+                reward += (1 - abs(temp_dist) / self.screen_width) * 0.1
                 if action == 0:
-                    reward -= 0.1 if (cc.x > self.player.x) else 0
+                    reward -= 0.5 if (cc.x > self.player.x) else 0
                 if action == 1:
-                    reward -= 0.1 if (cc.x < self.player.x) else 0
+                    reward -= 0.5 if (cc.x < self.player.x) else 0
                 """
                 if action == 2 and not self.jump and self.vel_y >= -2 and cc.y < self.player.y :
                     reward += 0.01
                 """
-                    
-                    
-
+                """
                 if not self.line_of_sight and (self.player.y < cc.y or self.player.y > cc.y):
                     if self.coin_penalty == 0:
                         self.coin_modifier -= 0.5 
-
+                """
             if self.invincible_timer > 0:
                 self.invincible_timer -= 1
 
@@ -395,10 +408,10 @@ class GameEnv(gym.Env):
             self.coin_penalty = 50
             self.coin_modifier -= 0.1
 
-        reward += self.coin_modifier
+        #reward += self.coin_modifier
 
 
-        #print("Total reward for this step: " + str(reward))
+        print("Total reward for this step: " + str(reward))
         #print(self._get_obs())
 
         return self._get_obs(), reward, terminated, False, {}
