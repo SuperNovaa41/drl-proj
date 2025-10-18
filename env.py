@@ -411,7 +411,7 @@ class GameEnv(gym.Env):
         #reward += self.coin_modifier
 
 
-        print("Total reward for this step: " + str(reward))
+        #print("Total reward for this step: " + str(reward))
         #print(self._get_obs())
 
         return self._get_obs(), reward, terminated, False, {}
