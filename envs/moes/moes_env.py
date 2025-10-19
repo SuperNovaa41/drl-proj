@@ -97,6 +97,7 @@ class MoesEnv(gym.Env):
         reward += 0.05
 
         # Flag for most levels is at the right (at least first 3) - give reward for going right
+        # Not good to use this
         if action == 2:
             reward += 0.1
 
@@ -120,6 +121,7 @@ class MoesEnv(gym.Env):
         # need to return: observation, reward, terminated, truncated, info = env.step(action)
         return obs, reward, terminated, truncated, info 
 
+    # Both these using render_rl - in source code
     def render(self):
         if self.render_mode == "rgb_array":
             self.game.render()
@@ -196,9 +198,9 @@ class MoesEnv(gym.Env):
             r_coin_distance / level_width,
             down_coin_distance / level_height,
             up_coin_distance / level_height,
-            l_goal_distance / level_width,
-            r_goal_distance / level_width,
-            down_goal_distance / level_height,
+            # l_goal_distance / level_width,
+            # r_goal_distance / level_width,
+            # down_goal_distance / level_height,
             up_goal_distance / level_height
         ], dtype=np.float32)
         
@@ -255,6 +257,48 @@ class MoesEnv(gym.Env):
             step += 1
         
         return distance
+    
+    # Modifying these to render properly for drl
+    # --------- Rendering helpers ---------
+    def _lazy_pygame(self):
+        self._pygame = pygame
+        self._pygame.init()
+        self._screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self._clock = pygame.time.Clock()
+
+    def _render_human(self):
+        self._lazy_pygame()
+        pygame = self._pygame
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.close()
+        self._draw_scene()
+        pygame.display.flip()
+        self._clock.tick(self.metadata["render_fps"])
+
+    def _render_rgb(self):
+        self._lazy_pygame()
+        self._draw_scene()
+        import pygame
+        arr = pygame.surfarray.array3d(self._screen)
+        # transpose to HxWxC
+        return np.transpose(arr, (1, 0, 2))
+
+    def _draw_scene(self):
+        pygame = self._pygame
+        self._screen.fill((30, 30, 36))
+        # Pipes
+        for p in self._pipes:
+            gap_top = int(p["gap_top"]) ; gap_bottom = gap_top + self.PIPE_GAP
+            # upper
+            pygame.draw.rect(self._screen, (80, 200, 120),
+                             pygame.Rect(p["x"], 0, self.PIPE_WIDTH, gap_top))
+            # lower
+            pygame.draw.rect(self._screen, (80, 200, 120),
+                             pygame.Rect(p["x"], gap_bottom, self.PIPE_WIDTH, self.HEIGHT-gap_bottom))
+        # Bird
+        pygame.draw.rect(self._screen, (230, 200, 40),
+                         pygame.Rect(self.BIRD_X, int(self.bird_y), self.BIRD_SIZE, self.BIRD_SIZE))
 
     
 
