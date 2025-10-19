@@ -159,6 +159,11 @@ class GameEnv(gym.Env):
         self.invincible_timer = 60
         self.player_direction = 1
         self.scroll_x = 0 
+
+        self.coins_collected = 0
+        self.levels_passed = 0
+        self.enemies_killed = 0
+
         
         self.prev_coin_dist = None
         self.prev_enemy_dist = None
@@ -167,6 +172,10 @@ class GameEnv(gym.Env):
         self.max_coins = 0
         self.remaining_enemies = 0
         self.max_enemies = 0
+
+        self.coins_collected = 0
+        self.levels_passed = 0
+        self.enemies_killed = 0
 
         self.coin_penalty = 50
         self.coin_modifier = 0
@@ -323,6 +332,8 @@ class GameEnv(gym.Env):
                     reward += 10
                     self.remaining_coins -= 1
 
+                    self.coins_collected += 1
+
                     self.coin_penalty = 50
                     self.coin_modifier = 1
 
@@ -359,6 +370,7 @@ class GameEnv(gym.Env):
                         self.vel_y = self.jump_force // 2
                         self.score += 50
                         reward += 20
+                        self.enemies_killed += 1
                         self.remaining_enemies -= 1
                     else:
                         self.lives -= 1
@@ -391,15 +403,18 @@ class GameEnv(gym.Env):
                 terminated = True
             else:
                 self.current_map += 1
+                self.levels_passed += 1
                 self.win = False
                 self.reset_state()
 
         if self.steps >= self.max_steps:
             terminated = True
 
-        #print("Total reward for this step: " + str(reward))
+        info = {"score": self.score, "coins_collected": self.coins_collected,
+                "levels_passed": self.levels_passed, "enemies_killed": self.enemies_killed}
 
-        return self._get_obs(), reward, terminated, False, {}
+
+        return self._get_obs(), reward, terminated, False, info
             
 
     def render(self):

@@ -40,6 +40,12 @@ def run_episode_mario(model, reward_mode="coins", render=False):
 
         if render:
             env.render()
+
+    score = int(info.get("score", 0))
+    coins_collected = int(info.get("coins_collected", 0))
+    enemies_killed = int(info.get("enemies_killed", 0))
+    levels_passed = int(info.get("levels_passed", 0))
+
     env.close()
 
     return {
@@ -49,8 +55,13 @@ def run_episode_mario(model, reward_mode="coins", render=False):
         "right": right,
         "jumps": jump,
         "died": int(done and not trunc),
-        "truncated": int(trunc)
+        "truncated": int(trunc),
+        "score": score,
+        "coins_collected": coins_collected,
+        "enemies_killed": enemies_killed,
+        "levels_passed": levels_passed
     }
+
 
 def do_mario_run(model, episodes, reward_mode, render):
     rows = []
@@ -66,13 +77,28 @@ def do_mario_run(model, episodes, reward_mode, render):
     mean_right = float(np.mean([r["right"] for r in rows]))
     mean_jump = float(np.mean([r["jumps"] for r in rows]))
 
+    mean_score = float(np.mean([r["score"] for r in rows]))
+    mean_cc = float(np.mean([r["coins_collected"] for r in rows]))
+    mean_ek = float(np.mean([r["enemies_killed"] for r in rows]))
+    mean_lp = float(np.mean([r["levels_passed"] for r in rows]))
+
     print(f"Episodes: {len(rows)}")
     print(f"Mean reward: {mean_reward:.2f} +/- {std_reward:.2f}")
     print(f"Mean left movements: {mean_left:.2f}")
     print(f"Mean right movements: {mean_right:.2f}")
     print(f"Mean jumps: {mean_jump:.2f}")
+    print(f"Mean score: {mean_score:.2f}")
+    print(f"Mean coins collected: {mean_cc:.2f}")
+    print(f"Mean enemies killed: {mean_ek:.2f}")
+    print(f"Mean levels passed: {mean_lp:.2f}")
 
-    fieldnames = ["episode", "reward", "steps", "left", "right", "jumps", "died", "truncated"]
+    fieldnames = [
+            "episode", "reward", "steps",
+            "left", "right", "jumps",
+            "died", "truncated", "score",
+            "coins_collected", "enemies_killed",
+            "levels_passed"
+    }
 
     return rows, fieldnames
 
@@ -120,7 +146,5 @@ def main():
     print(f"Saved metrics to {csv_path}")
 
 
-
-    
 if __name__ == "__main__":
     main()
