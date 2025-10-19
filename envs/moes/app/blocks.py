@@ -1,9 +1,15 @@
-import os.path
+#import os.path
+import os
+import sys
 import random
-
 import pygame
-import player
-import utilities
+
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import player
+from envs.moes.app import utilities
 
 
 class block(pygame.sprite.Sprite):
@@ -96,8 +102,8 @@ class PushBlock(block):
                  object.rect.top = self.rect.bottom
     def update(self):
         self.move(0,1)
-    def render(self,screen):
-        screen.blit(self.image,self.rect)
+    # def render(self,screen):
+    #     screen.blit(self.image,self.rect)
 
 class Ramp(block):
     def __init__(self,image,game,pos,dir = True):
@@ -148,18 +154,19 @@ class collectable(block):
         block.__init__(self,image,game)
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
-        self.coin_sound = utilities.loadSound(os.path.join("data", "sounds"), "coin.wav")
+        # No sound for drl
+        #self.coin_sound = utilities.loadSound(os.path.join("data", "sounds"), "coin.wav")
         self.wobble = random.randint(0,10) * .1
         self.wdir = True
         self.type = type
     def onhit(self,object,direction = 0):
         if isinstance(object,player.Player):
             if self.type == "coin":
-                self.coin_sound.play()
+                #self.coin_sound.play()
                 object.game.coins += 1
                 self.kill()
             if self.type == "heart":
-                self.game.healthsound.play()
+                #self.game.healthsound.play()
                 self.game.health += 1
                 self.kill()
     def update(self):
@@ -179,7 +186,8 @@ class collectable(block):
 class finish(block):
     def __init__(self,pos):
         block.__init__(self)
-        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"finish.png",1),(8,8))
+        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"finish.png",1),(8,8))
+        #self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"finish.png",1),(8,8))
         self.image = self.images[0][0]
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -205,7 +213,8 @@ class finish(block):
 class Finalfinish(block):
     def __init__(self,pos):
         block.__init__(self)
-        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"finish.png",1),(8,8))
+        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"finish.png",1),(8,8))
+        #self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"finish.png",1),(8,8))
         self.image = pygame.transform.scale(self.images[0][0],(32,32)).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.topleft = pos

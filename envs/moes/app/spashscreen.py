@@ -1,10 +1,16 @@
-import os.path
-
+#import os.path
+import os
+import sys
 import pygame
-import state
 import random
 
-import utilities
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import state
+from envs.moes.app import utilities
+
+# doesn't run for ai agent
 
 
 class SpashScreen(state.State):
@@ -13,7 +19,7 @@ class SpashScreen(state.State):
         self.countdown = 75
         self.spashtext1 = self.game.large_font.render("A CheezeSoft Game", True, (255,255,255))
         self.spashtext1rect = self.spashtext1.get_rect(center=(self.game.screen_width / 2, self.game.screen_height / self.countdown + 100))
-        self.sound = utilities.loadSound(os.path.join("data","sounds"),"depressurize.wav")
+        #self.sound = utilities.loadSound(os.path.join("data","sounds"),"depressurize.wav")
 
 
     def update(self):

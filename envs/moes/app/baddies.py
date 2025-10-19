@@ -1,15 +1,23 @@
-import os.path
+#import os.path
+import os
 import random
-
-import blocks
-import utilities
+import sys
 import pygame
-import player
+
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import blocks
+from envs.moes.app import utilities
+from envs.moes.app import player
 
 class Crab(pygame.sprite.Sprite):
     def __init__(self,pos,collisiongroup):
         pygame.sprite.Sprite.__init__(self)
-        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"crab.png",1),(8,8))[0]
+        # adjusted path for drl environment folder structure
+        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"crab.png",1),(8,8))[0]
+        #self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"crab.png",1),(8,8))[0]
         self.image = self.images[0]
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -45,7 +53,6 @@ class Crab(pygame.sprite.Sprite):
                 object.baddiehit()
                 self.dir = not self.dir
 
-
     def update(self):
         if self.dir:
             self.move(1,0)
@@ -55,13 +62,17 @@ class Crab(pygame.sprite.Sprite):
         self.frame += 1
         self.image = self.images[int(self.frame / 8 % 2)]
         self.hitbox.center = self.rect.center
-    def render(self,screen):
-        screen.blit(self.image,self.rect)
+
+    # Legacy renders, don't seem to affect anything? Rendering handled in platform
+    # render function 
+    # def render(self,screen):
+    #     screen.blit(self.image,self.rect)
 
 class Dog(pygame.sprite.Sprite):
     def __init__(self,pos,collisiongroup):
         pygame.sprite.Sprite.__init__(self)
-        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"dog.png",1),(8,8))[0]
+        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"dog.png",1),(8,8))[0]
+        #self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"dog.png",1),(8,8))[0]
         self.limages = utilities.flipimages(self.rimages)
         self.image = self.rimages[0]
         self.rect = self.image.get_rect()
@@ -112,14 +123,15 @@ class Dog(pygame.sprite.Sprite):
             self.image = self.limages[int(self.frame / 8 % 3)]
         self.hitbox.center = self.rect.center
 
-    def render(self,screen):
-        screen.blit(self.image,self.rect)
+    # def render(self,screen):
+    #     screen.blit(self.image,self.rect)
 
 
 class Bee(pygame.sprite.Sprite):
     def __init__(self,pos,collisiongroup):
         pygame.sprite.Sprite.__init__(self)
-        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"Bee.png",1),(8,8))[0]
+        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"bee.png",1),(8,8))[0]
+        #self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"bee.png",1),(8,8))[0]
         self.limages = utilities.flipimages(self.rimages)
         self.image = self.rimages[0]
         self.rect = self.image.get_rect()
@@ -191,13 +203,14 @@ class Bee(pygame.sprite.Sprite):
                 self.wdir = True
         self.hitbox.center = self.rect.center
 
-    def render(self,screen):
-        screen.blit(self.image,self.rect)
+    # def render(self,screen):
+    #     screen.blit(self.image,self.rect)
 
 class Penguin(pygame.sprite.Sprite):
     def __init__(self,pos,collisiongroup):
         pygame.sprite.Sprite.__init__(self)
-        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"penguin.png",1),(8,8))[0]
+        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"penguin.png",1),(8,8))[0]
+        #self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"penguin.png",1),(8,8))[0]
         self.limages = utilities.flipimages(self.rimages)
         self.image = self.rimages[0]
         self.rect = self.image.get_rect()
@@ -247,12 +260,13 @@ class Penguin(pygame.sprite.Sprite):
         if self.dir == False:
             self.image = self.limages[int(self.frame / 8 % 3)]
         self.hitbox.center = self.rect.center
-    def render(self,screen):
-        screen.blit(self.image,self.rect)
+    # def render(self,screen):
+    #     screen.blit(self.image,self.rect)
 class Spike(pygame.sprite.Sprite):
     def __init__(self,pos,collisiongroup,dir):
         pygame.sprite.Sprite.__init__(self)
-        self.image = utilities.loadImage(os.path.join("data","images"),"spike.png",1)
+        self.image = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"spike.png",1)
+        #self.image = utilities.loadImage(os.path.join("data","images"),"spike.png",1)
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         self.collisiongroup = collisiongroup
@@ -296,13 +310,14 @@ class Spike(pygame.sprite.Sprite):
 
     def update(self):
         pass
-    def render(self,screen):
-        screen.blit(self.image,self.rect)
+    # def render(self,screen):
+    #     screen.blit(self.image,self.rect)
 
 class Snowman(pygame.sprite.Sprite):
     def __init__(self,pos,collison_group):
         pygame.sprite.Sprite.__init__(self)
-        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"snowman.png", 1),(8,8))
+        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"snowman.png",1),(8,8))
+        #self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"snowman.png", 1),(8,8))
         self.left_walking = self.images[0]
         self.left_throwing = self.images[1]
         self.right_walking = utilities.flipimages(self.left_walking)
@@ -368,12 +383,14 @@ class Snowman(pygame.sprite.Sprite):
                 self.dir = not self.dir
                 self.throwing = False
                 self.halfmove = True
+# replaced image w rect for drl surface
 class Snowball(pygame.sprite.Sprite):
     def __init__(self,direction,startpos, colgro):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((2,2))
-        self.image.fill((255,255,255))
-        self.rect = self.image.get_rect()
+        #self.image = pygame.Surface((2,2))
+        #self.image.fill((255,255,255))
+        self.rect = pygame.Rect(startpos, (2,2))
+        #self.rect = self.image.get_rect()
         self.rect.center = startpos
         self.dir = direction
         self.collisiongroup = colgro
@@ -422,7 +439,8 @@ class Snowball(pygame.sprite.Sprite):
 class Bat(pygame.sprite.Sprite):
     def __init__(self,pos,collison_group):
         pygame.sprite.Sprite.__init__(self)
-        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"bat.png",1),(8,8))[0]
+        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"bat.png",1),(8,8))[0]
+        #self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"bat.png",1),(8,8))[0]
         self.rest_image = self.images[0]
         self.flying_image = [self.images[1],self.images[2]]
         self.image = self.rest_image
@@ -489,14 +507,16 @@ class Bat(pygame.sprite.Sprite):
 class Wolf(Dog):
     def __init__(self,pos,collisiongroup):
         Dog.__init__(self, pos, collisiongroup)
-        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"wolves.png",1),(8,8))[0]
+        self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"wolves.png",1),(8,8))[0]
+        #self.rimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"wolves.png",1),(8,8))[0]
         self.limages = utilities.flipimages(self.rimages)
 
 
 class Jelly(pygame.sprite.Sprite):
     def __init__(self,pos,colgroup):
         pygame.sprite.Sprite.__init__(self)
-        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"jellyfish.png",1),(8,8))[0]
+        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"jellyfish.png",1),(8,8))[0]
+        #self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"jellyfish.png",1),(8,8))[0]
         self.image = self.images[0]
         self.rect = self.image.get_rect()
         self.rect.topleft = pos

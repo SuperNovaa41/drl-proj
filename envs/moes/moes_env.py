@@ -1,14 +1,20 @@
 # In venv
 import gymnasium as gym
 from gymnasium import spaces
-from app.game import game
-from app import level
+
 import numpy as np
 import random
 import pygame
 import math
+import os, sys
 
-class MoesEnv(gym.env):
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import level
+from envs.moes.app import game
+
+class MoesEnv(gym.Env):
 
     # add reward mode later
     def __init__(self, render_mode = None, seed=None, reward_mode = None):
@@ -21,11 +27,11 @@ class MoesEnv(gym.env):
         self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
         # 0 - do nothing, 1 go left, 2 go right, 3 down, 4 jump
         self.action_space = spaces.Discrete(5)
-        
-        # Internal state
-        self.reset(seed=seed)
 
-        self.game = game()
+        self.game = game.game(drl_mode=True)
+        
+        # Internal state - calls reset from the start
+        self.reset(seed=seed)
 
     # Reset the game to its initial state (player position, level, score, enemies, etc.).
     # Happens on termination/truncation (new level, player death, agent error)
@@ -60,6 +66,8 @@ class MoesEnv(gym.env):
     # one decision point, ie movement 1 to the right, or one jump
     # many of these per episode
     def step(self, action: int):
+        terminated = False
+        truncated = False
         # Handles actions + updates environment
         self.game.update(action)
 
@@ -157,20 +165,20 @@ class MoesEnv(gym.env):
         # Getting nearest enemy distances: Left, Right, Up, Down
         l_baddie_distance = self._get_distance_item_left(yt, xt, baddies, current_map, level_width)
         r_baddie_distance = self._get_distance_item_right(yt, xt, baddies, current_map, level_width)
-        down_baddie_distance = self._get_distance_item_down(self, yt, xt, baddies, current_map, level_height)
-        up_baddie_distance = self._get_distance_item_up(self, yt, xt, baddies, current_map, level_height)
+        down_baddie_distance = self._get_distance_item_down(yt, xt, baddies, current_map, level_height)
+        up_baddie_distance = self._get_distance_item_up(yt, xt, baddies, current_map, level_height)
 
         # Getting nearest coin distances
         l_coin_distance = self._get_distance_item_left(yt, xt, coin, current_map, level_width)
         r_coin_distance = self._get_distance_item_right(yt, xt, coin, current_map, level_width)
-        down_coin_distance = self._get_distance_item_down(self, yt, xt, coin, current_map, level_height)
-        up_coin_distance = self._get_distance_item_up(self, yt, xt, coin, current_map, level_height)
+        down_coin_distance = self._get_distance_item_down(yt, xt, coin, current_map, level_height)
+        up_coin_distance = self._get_distance_item_up(yt, xt, coin, current_map, level_height)
 
         # Distance to goal
         l_goal_distance = self._get_distance_item_left(yt, xt, goal, current_map, level_width)
         r_goal_distance = self._get_distance_item_right(yt, xt, goal, current_map, level_width)
-        down_goal_distance = self._get_distance_item_down(self, yt, xt, goal, current_map, level_height)
-        up_goal_distance = self._get_distance_item_up(self, yt, xt, goal, current_map, level_height)
+        down_goal_distance = self._get_distance_item_down(yt, xt, goal, current_map, level_height)
+        up_goal_distance = self._get_distance_item_up(yt, xt, goal, current_map, level_height)
 
         obs = np.array([
             y_coord / level_height,

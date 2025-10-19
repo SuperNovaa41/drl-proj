@@ -1,6 +1,12 @@
 import pygame.sprite
+import os
+import sys
 
-import utilities
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import utilities
 
 # Note: Level size in pixels as comparing screen size (pixels) to it directly
 class Camera():
@@ -35,6 +41,8 @@ class Camera():
 
     def get_offset(self):
         return self.offset
+    
+    # Here screen.blit renders images, avoid drl calling this
     def draw_sprite(self,screen,sprite):
         if sprite.rect.colliderect(pygame.rect.Rect(utilities.sub_pos(screen.get_rect().topleft, self.offset),(screen.get_width(),screen.get_height()))):
             screen.blit(sprite.image,utilities.add_pos(sprite.rect.topleft,self.offset))

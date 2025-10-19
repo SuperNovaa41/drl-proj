@@ -1,12 +1,19 @@
-import os.path
-
+#import os.path
+import os
+import sys
 import pygame
-import utilities
+
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import utilities
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game):
         pygame.sprite.Sprite.__init__(self)
-        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"moe.png",1),(8,8))
+        self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"moe.png",1),(8,8))
+        #self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"moe.png",1),(8,8))
         self.game = game
         self.frame = 0
 

@@ -2,6 +2,11 @@
 import argparse, os, csv
 import numpy as np
 from stable_baselines3 import PPO
+import sys
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(PROJECT_ROOT)
+
 from envs.moes.moes_env import MoesEnv
 
 def run_episode(model, reward_mode=None, render=False):

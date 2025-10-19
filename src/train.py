@@ -1,10 +1,16 @@
 import argparse
 import os
+import sys
 
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.logger import configure
+
+# abs path getting users path to the file, 2 dirname calls getting 2 folders up
+# so path starts from within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(PROJECT_ROOT)
 
 from envs.moes.moes_env import MoesEnv
 
@@ -17,7 +23,8 @@ def main():
     parser = argparse.ArgumentParser()
     # would run python train.py and it would default do 200 000
     parser.add_argument("--timesteps", type=int, default=200_000)
-    # parser.add_argument("--reward_mode", type=str, default="survival", choices=["survival", "coverage"])
+    parser.add_argument("--reward_mode", type=str, default=None)
+    #parser.add_argument("--reward_mode", type=str, default="survival", choices=["survival", "coverage"])
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--logdir", type=str, default="a1-olly/logs")
     parser.add_argument("--modeldir", type=str, default="a1-olly/models")

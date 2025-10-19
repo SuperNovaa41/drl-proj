@@ -1,8 +1,13 @@
-import state
 import pygame
-import utilities
 import os
+import sys
 import random
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import state
+from envs.moes.app import utilities
 
 
 class Victory(state.State):
@@ -27,8 +32,8 @@ class Victory(state.State):
 
     def update(self):
         if self.musicstart == False:
-            pygame.mixer.music.load(os.path.join("data", "music", "moesstartscreen.ogg"))
-            pygame.mixer.music.play(-1, 0, 10)
+            # pygame.mixer.music.load(os.path.join("data", "music", "moesstartscreen.ogg"))
+            # pygame.mixer.music.play(-1, 0, 10)
             self.musicstart = True
         if self.credit_timer <= 0:
             self.credit_timer = 100
@@ -38,7 +43,7 @@ class Victory(state.State):
                 self.credittextrect = self.credittext.get_rect(center=(self.game.screen_width / 2, self.game.screen_height / 2 - 30))
             else:
                 self.exit()
-                pygame.mixer.music.unload()
+                #pygame.mixer.music.unload()
                 self.musicstart = False
                 self.game.spash.enter()
                 self.game.spash.countdown = 75
@@ -56,7 +61,7 @@ class Victory(state.State):
                     center=(self.game.screen_width / 2, self.game.screen_height / 2 - 30))
             else:
                 self.exit()
-                pygame.mixer.music.unload()
+                #pygame.mixer.music.unload()
                 self.musicstart = False
                 self.game.spash.enter()
                 self.game.spash.countdown = 75

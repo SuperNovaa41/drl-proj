@@ -1,7 +1,14 @@
+import os
+import sys
 import pygame
-import utilities
-import state
-import game
+
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import utilities
+from envs.moes.app import state
+from envs.moes.app import game
 
 class pause(state.State):
     def __init__(self,game):

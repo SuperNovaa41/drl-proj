@@ -1,20 +1,28 @@
-import os.path
-
-import baddies
-import camera
+#import os.path
+import os
+import sys
 import pygame
 
-import hud
-import state
-import player
-import blocks
-import level
-import utilities
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import game
+from envs.moes.app import baddies
+from envs.moes.app import camera
+from envs.moes.app import hud
+from envs.moes.app import state
+from envs.moes.app import player
+from envs.moes.app import blocks
+from envs.moes.app import level
+from envs.moes.app import utilities
 
 class Platformer(state.State):
     def __init__(self, game):
         state.State.__init__(self,game)
-        self.tempsurf = pygame.Surface((200,160))
+        # causing drl training error
+        #self.tempsurf = None
+        #self.tempsurf = pygame.Surface((200,160))
         self.player = player.Player(self)
         self.collidables = pygame.sprite.Group()
         self.decor = pygame.sprite.Group()
@@ -31,25 +39,36 @@ class Platformer(state.State):
         self.level10 = level.level10
         self.level11 = level.level11
         self.level12 = level.level12
-        # 0 for in menu, changed by Olly to 1 for ai starting from level 1
+
         self.currentlvl = 0
         self.backgroundimage = None
-        self.coinimage = utilities.loadImage(os.path.join("data","images"),"coin.png",1)
-        self.heartimage = utilities.loadImage(os.path.join("data","images"), "heart.png", 1)
-        self.bridgeimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"bridge.png", 1),(8,8))
-        self.treeimage = utilities.loadImage(os.path.join("data","images"),"palmtree1.png" , 1)
+
+        # DRL mode still needs images loaded to grab dimensions
+        self.coinimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"coin.png",1)
+        self.heartimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"heart.png",1)
+        self.bridgeimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"bridge.png",1),(8,8))
+        self.treeimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"palmtree1.png",1)
+        #self.coinimage = utilities.loadImage(os.path.join("data","images"),"coin.png",1)
+        #self.heartimage = utilities.loadImage(os.path.join("data","images"), "heart.png", 1)
+        #self.bridgeimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),"bridge.png", 1),(8,8))
+        #self.treeimage = utilities.loadImage(os.path.join("data","images"),"palmtree1.png" , 1)
+
         self.player.collision_group = self.collidables
-        self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
+        self.camera = camera.Camera(self.player,(self.get_tempsurf().get_width(),self.get_tempsurf().get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
+        #self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
 
         self.coins = 0
         self.lives = 3
         self.health = 3
 
-        self.jumpsound = utilities.loadSound(os.path.join("data", "sounds"),"jump.wav")
-        self.oneupsound = utilities.loadSound(os.path.join("data", "sounds"), "1up.wav")
-        self.jumpsound.set_volume(.5)
-        self.hitsound = utilities.loadSound(os.path.join("data", "sounds"), "hit.wav")
-        self.healthsound = utilities.loadSound(os.path.join("data", "sounds"), "health.wav")
+        # DRL doesn't need music
+        if self.game.drl_mode == False:
+            self.jumpsound = utilities.loadSound(os.path.join("data", "sounds"),"jump.wav")
+            self.oneupsound = utilities.loadSound(os.path.join("data", "sounds"), "1up.wav")
+            self.jumpsound.set_volume(.5)
+            self.hitsound = utilities.loadSound(os.path.join("data", "sounds"), "hit.wav")
+            self.healthsound = utilities.loadSound(os.path.join("data", "sounds"), "health.wav")
+        
         self.hud = hud.hud(self)
 
     def action_update(self):
@@ -87,7 +106,8 @@ class Platformer(state.State):
         self.hud.reset_time()
     def vic(self):
         self.exit()
-        pygame.mixer.music.unload()
+        if self.game.drl_mode == False:
+            pygame.mixer.music.unload()
         self.game.victory.enter()
         # Olly added
         self.hud.reset_time()
@@ -117,21 +137,60 @@ class Platformer(state.State):
             self.oneupsound.play()
             self.coins -= 100
 
+    # Olly added for simple RL agent rendering
+    def render_rl(self):
+        # flat color background - dark blue
+        self.tempsurf.fill((50, 50, 100)) 
 
-    def render(self):
-        self.tempsurf.fill((0,0,0))
-        self.tempsurf.blit(self.backgroundimage,(0,0))
+        # draw blocks - gray
         for i in self.decor:
-            self.camera.draw_sprite(self.tempsurf,i)
+            pygame.draw.rect(self.tempsurf, (100, 100, 100), i.rect)
+        
+        # draw enemies - green
         for i in self.collidables.sprites():
-            self.camera.draw_sprite(self.tempsurf,i)
+            pygame.draw.rect(self.tempsurf, (0, 255, 0), i.rect)
+
+        # draw player - red rectangle
+        pygame.draw.rect(self.tempsurf, (255, 0, 0), self.player.rect)
+
+        # don't need to render hud for rl (can see wanted data through info)
+
+    # need if statement + other function to account for human rendering, vs rl agent
+    # simple rendering
+    # might not need these edits, might take out if drl mode false part
+    def render(self):
+        # all tempsurf here used to be self.tempsurf
+        tempsurf = self.get_tempsurf()
+        tempsurf.fill((0,0,0))
+
+        tempsurf.blit(self.backgroundimage,(0,0))
+        for i in self.decor:
+            self.camera.draw_sprite(tempsurf,i)
+        for i in self.collidables.sprites():
+            self.camera.draw_sprite(tempsurf,i)
             #it = i.rect.copy()
             #it.topleft = utilities.add_pos(i.rect.topleft,self.camera.offset)
             #pygame.draw.rect(self.tempsurf,(90,90,90),it,1)
 
-        self.camera.draw_sprite(self.tempsurf, self.player)
-        self.hud.render(self.tempsurf)
-        self.game.screen.blit(pygame.transform.scale(self.tempsurf,(800,640)),(0,0))
+        self.camera.draw_sprite(tempsurf, self.player)
+        self.hud.render(tempsurf)
+        self.game.screen.blit(pygame.transform.scale(tempsurf,(800,640)),(0,0))
+
+        # if self.game.drl_mode == False:
+        #     self.tempsurf.blit(self.backgroundimage,(0,0))
+        #     for i in self.decor:
+        #         self.camera.draw_sprite(self.tempsurf,i)
+        #     for i in self.collidables.sprites():
+        #         self.camera.draw_sprite(self.tempsurf,i)
+        #         #it = i.rect.copy()
+        #         #it.topleft = utilities.add_pos(i.rect.topleft,self.camera.offset)
+        #         #pygame.draw.rect(self.tempsurf,(90,90,90),it,1)
+
+        #     self.camera.draw_sprite(self.tempsurf, self.player)
+        #     self.hud.render(self.tempsurf)
+        #     self.game.screen.blit(pygame.transform.scale(self.tempsurf,(800,640)),(0,0))
+        # else:
+        #     self.render_rl()
 
     # There is a certain tile for the direction [down, up, right, left]
     # g = ground, b = the platform player can down arrow to go through
@@ -167,23 +226,33 @@ class Platformer(state.State):
     
     # Changes wierd letters to a map, associating ie g with ground platform, c with coins
     # Parsing happens in levelselect before player enters level
+    # Adds the letters to different groups (blocks,collidables,etc) to later be rendered
+    # through render function
     def levelparse(self,level):
-
         self.lvlclear()
-        pygame.mixer.music.unload()
-        pygame.mixer.music.load(os.path.join("data","music",level["music"]))
-        pygame.mixer.music.play(-1)
-        pygame.mixer.music.set_volume(.5)
+        if self.game.drl_mode == False:
+            pygame.mixer.music.unload()
+            pygame.mixer.music.load(os.path.join("data","music",level["music"]))
+            pygame.mixer.music.play(-1)
+            pygame.mixer.music.set_volume(.5)
         map = level["map"]
         self.currentlvl = level["num"]
-        self.backgroundimage = utilities.loadImage(os.path.join("data","images"),level["background image"])
-        groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),level["ground image"],1),(8,8))
-        miscblocks = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"), "miscblocks.png",1),(8,8))
+        self.backgroundimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["background image"])
+        #self.backgroundimage = utilities.loadImage(os.path.join("data","images"),level["background image"])
+        groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["ground image"],1),(8,8))
+        #groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),level["ground image"],1),(8,8))
+        miscblocks = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"miscblocks.png",1),(8,8))
+        #miscblocks = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"), "miscblocks.png",1),(8,8))
         dimages = []
         for i in level["decor"]:
-            dimages.append(utilities.loadImage(os.path.join("data","images"),i,1))
-        self.camera = camera.Camera(self.player, (self.tempsurf.get_width(), self.tempsurf.get_height()),
+            dimages.append(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),i,1))
+            #dimages.append(utilities.loadImage(os.path.join("data","images"),i,1))
+
+        self.camera = camera.Camera(self.player, (self.get_tempsurf().get_width(),self.get_tempsurf().get_height()),
                                     (len(level["map"][0] * 8), len(level["map"] * 8)))
+
+        # self.camera = camera.Camera(self.player, (self.tempsurf.get_width(), self.tempsurf.get_height()),
+        #                             (len(level["map"][0] * 8), len(level["map"] * 8)))
         x = 0
         y = 0
         for i in map:
@@ -257,7 +326,7 @@ class Platformer(state.State):
                 if k == "h":
                     self.collidables.add(blocks.collectable(self.heartimage,self,"heart",(x,y)))
                 if k == "p":
-                    self.collidables.add(blocks.PushBlock(miscblocks[0][4],(x,y),self.collidables,self)   )
+                    self.collidables.add(blocks.PushBlock(miscblocks[0][4],(x,y),self.collidables,self))
                 if k == "P":
                     self.player.set_pos((x,y))
                 if k == "C":
@@ -314,3 +383,7 @@ class Platformer(state.State):
 
     def set_lives(self, amount):
         self.lives = amount
+
+    # getting around temp surf error
+    def get_tempsurf(self):
+        return pygame.Surface((200, 160))

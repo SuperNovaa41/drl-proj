@@ -1,12 +1,15 @@
-
 import os
+import sys
 import pygame
 
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
 
 def loadImage(dir, filename, alpha=0):
     try:
-        imgdir = os.path.join(dir, filename)
-        print(imgdir)
+        imgdir = os.path.join(PROJECT_ROOT, "envs", "moes", "app", "data", "images", filename)
+        #imgdir = os.path.join(dir, filename)
         image = pygame.image.load(imgdir)
         if image == None:
             image = pygame.Surface(64,64)
@@ -37,7 +40,7 @@ def changeVolumes(los, vol):
     except:
         print("could not adjust volume")
 
-
+# Could cuase drl issues
 def getImageAt(image, loc, size):
     try:
         a = pygame.Surface(size).convert_alpha()
@@ -47,7 +50,7 @@ def getImageAt(image, loc, size):
     except:
         print("couldnt retreive image at " + loc)
 
-
+# still needed for drl
 def loadSpriteSheet(image, tilesize):
     try:
         ssw = image.get_width() // tilesize[0]

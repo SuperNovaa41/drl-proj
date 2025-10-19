@@ -1,18 +1,27 @@
-import os.path
-
+#import os.path
+import os
+import sys
 import pygame
-import state
 import random
 
-import utilities
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
 
+from envs.moes.app import state
+from envs.moes.app import utilities
+
+# doesn't run for ai agent
 
 class StartScreen(state.State):
     def __init__(self, game):
         state.State.__init__(self, game)
-        self.background = utilities.loadImage(os.path.join("data","images"),"skygrad.png")
-        self.grassimage = utilities.loadImage(os.path.join("data","images"),"grass.png",1)
-        self.grassshadow = utilities.loadImage(os.path.join("data","images"),"grasshadow.png" ,1)
+        self.background = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"skygrad.png")
+        self.grassimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"grass.png",1)
+        self.background = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"skygrad.png")
+        self.background = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"grasshadow.png",1)
+        #self.background = utilities.loadImage(os.path.join("data","images"),"skygrad.png")
+        #self.grassimage = utilities.loadImage(os.path.join("data","images"),"grass.png",1)
+        #self.grassshadow = utilities.loadImage(os.path.join("data","images"),"grasshadow.png" ,1)
         self.starttext = self.game.small_font.render("press Start", True, (255,255,255))
         self.starttextrect = self.starttext.get_rect(center=(self.game.screen_width / 2, self.game.screen_height / 2 - 30))
         self.titletext = self.game.large_font.render("Moes Adventure", True, (255, 255, 255))
@@ -21,13 +30,13 @@ class StartScreen(state.State):
         self.musicstart = False
 
     def update(self):
-        if self.musicstart == False:
-            pygame.mixer.music.load(os.path.join("data", "music", "moesstartscreen.ogg"))
-            pygame.mixer.music.play(-1,0,10)
-            self.musicstart = True
+        # if self.musicstart == False:
+        #     pygame.mixer.music.load(os.path.join("data", "music", "moesstartscreen.ogg"))
+        #     pygame.mixer.music.play(-1,0,10)
+        #     self.musicstart = True
         if self.game.actions["start"]:
             self.exit()
-            pygame.mixer.music.stop()
+            #pygame.mixer.music.stop()
             self.musicstart = False
             self.game.levelselection.enter()
 

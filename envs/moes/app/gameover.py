@@ -1,5 +1,12 @@
-import level
-import state
+import os
+import sys
+
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import level
+from envs.moes.app import state
 
 class Gameover(state.State):
     def __init__(self,game):

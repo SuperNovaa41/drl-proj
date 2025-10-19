@@ -1,19 +1,26 @@
-import os.path
+#import os.path
+import os
+import sys
 import pygame
 
-import level
-import utilities
-import state
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import level
+from envs.moes.app import utilities
+from envs.moes.app import state
 
 class LevelSelect(state.State):
     def __init__(self,game):
         state.State.__init__(self,game)
-        self.mapimage = utilities.loadImage(os.path.join("data","images"),"mapselect.png")
+        self.mapimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"mapselect.png")
+        #self.mapimage = utilities.loadImage(os.path.join("data","images"),"mapselect.png")
         self.points = [(622,622),(650,506),(738,379),(688,234),(520,365),(345,365),(333,250),(469,232),(496,102),(383,134),(246,109),(81,135)]
         self.current_sel = 0
         self.pressedonce = False
         self.musicplaying = False
-        self.movesound = utilities.loadSound(os.path.join("data","sounds"),"selmove.wav")
+        #self.movesound = utilities.loadSound(os.path.join("data","sounds"),"selmove.wav")
         self.levellock = level.levellocks
 
     def update(self):
@@ -22,17 +29,17 @@ class LevelSelect(state.State):
         if self.game.actions["up"] and self.current_sel < 11 and self.pressedonce == False:
             self.current_sel +=1
             self.pressedonce = True
-            self.movesound.play()
+            #self.movesound.play()
         if self.game.actions["down"] and self.current_sel > 0 and self.pressedonce == False:
             self.current_sel -= 1
             self.pressedonce = True
-            self.movesound.play()
+            #self.movesound.play()
         if not self.game.actions["up"] and not self.game.actions["down"] :
             self.pressedonce = False
-        if not self.musicplaying:
-            pygame.mixer.music.load(os.path.join("data", "music", "levelsel.ogg"))
-            pygame.mixer.music.play(-1)
-            self.musicplaying = True
+        # if not self.musicplaying:
+        #     pygame.mixer.music.load(os.path.join("data", "music", "levelsel.ogg"))
+        #     pygame.mixer.music.play(-1)
+        #     self.musicplaying = True
         if self.game.actions["a"]:
             if self.levellock[self.current_sel] == 0 or self.levellock[self.current_sel] == 2:
                 self.exit()

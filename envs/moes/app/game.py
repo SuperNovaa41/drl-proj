@@ -1,16 +1,25 @@
 import pygame,os,time
 import pygame._sdl2 as sdl2
 
-import gameover
-import pause
-import state,utilities,spashscreen, startscreen, levelselect, platformer
-import victory
-import win
+import sys
+
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import gameover
+#import gameover
+from envs.moes.app import pause
+from envs.moes.app import state,utilities,spashscreen, startscreen, levelselect, platformer
+from envs.moes.app import victory
+from envs.moes.app import win
 
 GAMETITLE = "Moe's Adventure"
 
 class game():
-    def __init__(self):
+    # Added drl mode for ai agent
+    def __init__(self, drl_mode=False):
+        self.drl_mode = drl_mode
         #sets up pygame
         os.environ["SDL_VIDEO_CENTERED"] = "1"
         pygame.init()
@@ -18,10 +27,12 @@ class game():
         pygame.display.set_caption(GAMETITLE)
         self.screen_width, self.screen_height = 800, 640
         self.screen = pygame.display.set_mode((self.screen_width,self.screen_height),pygame.RESIZABLE|pygame.SCALED)
-        pygame.display.set_icon(utilities.loadImage(os.path.join("data", "images"), "icon.png"))
+        # Causing errors in agent training
+        #pygame.display.set_icon(utilities.loadImage(os.path.join("data", "images"), "icon.png"))
 
         #load font
-        self.font_path = os.path.join("data", "fonts", "Cave-Story.ttf")
+        self.font_path = os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data", "fonts", "Cave-Story.ttf")
+        #self.font_path = os.path.join("data", "fonts", "Cave-Story.ttf")
         self.large_font = pygame.font.Font(self.font_path, 75)
         self.small_font = pygame.font.Font(self.font_path, 30)
         self.tiny_font = pygame.font.Font(self.font_path, 15)
@@ -141,14 +152,8 @@ class game():
         #self.levelselection.enter()
 
         # Olly added, this starts from level 1 - problem, on beat player taken back to main menu
-        self.platformer.set_coins(50)
-        self.platformer.set_lives(5)
         self.platformer.enter()
         self.platformer.levelparse(self.platformer.level1)
-
-        # check what happens when we hit win state
-        # on win state class exit is being called taking us to the previous state - level selection
-        # solution, no exit on win?
 
         while self.running:
             # This updating actions

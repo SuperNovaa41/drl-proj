@@ -1,11 +1,19 @@
-import os.path
+#import os.path
+import os
+import sys
 
 import pygame
-import utilities
+
+# goes up 4 directories to be within a1-olly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) 
+sys.path.append(PROJECT_ROOT)
+
+from envs.moes.app import utilities
 
 class hud():
     def __init__(self,game):
-        self.hudbg = utilities.loadImage(os.path.join("data","images"),"hudbg.png",1)
+        self.hudbg = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"hudbg.png",1)
+        #self.hudbg = utilities.loadImage(os.path.join("data","images"),"hudbg.png",1)
         self.game = game
         self.cointext = self.game.game.tiny_font.render("Coins: " + str(self.game.coins), False, (190, 190, 190))
         self.livestext = self.game.game.tiny_font.render("lives: " + str(self.game.lives), False, (190, 190, 190))
