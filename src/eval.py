@@ -120,7 +120,7 @@ def main():
 
     csv_path = args.csv_out
     if def_csv_out == args.csv_out:
-        csv_path = args.csv_out + args.env + "_" + args.reward_mode + "_" + args.model-type + ".csv"
+        csv_path = args.csv_out + args.env + "_" + args.reward_mode + "_" + args.model_type + ".csv"
 
     os.makedirs(os.path.dirname(csv_path), exist_ok=True)
     if (args.model_type == "PPO"):
