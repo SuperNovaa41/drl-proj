@@ -67,7 +67,7 @@ The mario environment is derived from [this project](https://github.com/Tharun-b
 
 The environment consists of three levels, Xs represent a tile, Cs represent a coin, Gs represent a Goomba:
 
-
+```
 "                                        "
 "                                        "
 "                                        "
@@ -79,8 +79,8 @@ The environment consists of three levels, Xs represent a tile, Cs represent a co
 " XXXXXX      XX     XXXX       XX       "
 "         C     G     C          C       "
 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
-
+```
+```
 "                                        "
 "                                        "
 "                                        "
@@ -92,7 +92,8 @@ The environment consists of three levels, Xs represent a tile, Cs represent a co
 "             XX     XXXX       XX  C    "
 "X    G                           G      "
 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
+```
+```
 "                                        "
 "                                        "
 "                                        "
@@ -104,7 +105,7 @@ The environment consists of three levels, Xs represent a tile, Cs represent a co
 " XX XXX      XX     XXXX       XX       "
 " G   C    G          C                  "
 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
+```
 #### Actions:
 
 |Action|In Game Movement|
@@ -138,5 +139,5 @@ The environment consists of three levels, Xs represent a tile, Cs represent a co
 
 #### Video:
 
-[![Mario environment](./videos/mario-env.mp4)
+[![Mario environment]()](./videos/mario-env.mp4)
 
