@@ -31,8 +31,8 @@ def main():
     parser.add_argument("--timesteps", type=int, default=200_000)
     parser.add_argument("--reward_mode", type=str, default="coins", choices=["coins","enemies"])
     parser.add_argument("--seed", type=int, default=7)
-    parser.add_argument("--logdir", type=str, default="../logs")
-    parser.add_argument("--modeldir", type=str, default="../models")
+    parser.add_argument("--logdir", type=str, default="logs")
+    parser.add_argument("--modeldir", type=str, default="models")
 
     args = parser.parse_args()
 
