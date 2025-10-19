@@ -4,6 +4,8 @@ from stable_baselines3 import PPO, DQN
 
 import numpy as np
 
+import csv
+
 import argparse
 import os
 import sys
@@ -83,13 +85,15 @@ def main():
     p.add_argument("--episodes", type=int, default=10)
     p.add_argument("--render", type=int, default=0)
     p.add_argument("--reward_mode", type=str, default="coins", choices=["coins", "enemies"])
-    p.add_argument("--csv_out", type=str, default="logs/eval_metrics.csv")
+    p.add_argument("--csv_out", type=str, default="../logs/eval_metrics_")
     args = p.parse_args()
 
     if not os.path.exists(args.model_path + ".zip"):
         raise FileNotFoundError(f"Model not found: {args.model_path}.zip")
+
+    csv_path = args.csv_out + args.env + ".csv"
     
-    os.makedirs(os.path.dirname(args.csv_out), exist_ok=True)
+    os.makedirs(os.path.dirname(csv_path), exist_ok=True)
     if (args.model_type == "PPO"):
         model = PPO.load(args.model_path)
     elif (args.model_type == "DQN"):
@@ -104,13 +108,13 @@ def main():
         print(f"Environment ({args.env}) not found.")
         exit(-1)
 
-    with open(args.csv_out, "w", newline="") as f:
+    with open(csv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         for row in rows:
             w.writerow(row)
 
-    print(f"Saved metrics to {args.csv_out}")
+    print(f"Saved metrics to {csv_path}")
 
 
 
