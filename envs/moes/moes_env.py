@@ -103,8 +103,7 @@ class MoesEnv(gym.Env):
 
         if terminated and self.game.curr_state == self.game.winscreen:
             reward += 1
-
-        if terminated and self.game.curr_state == self.game.deathscreen:
+        elif terminated and self.game.curr_state == self.game.deathscreen:
             reward -= 1.0
 
         # could calculate x and y coords here, then pass in here, to use above for distance from flag
