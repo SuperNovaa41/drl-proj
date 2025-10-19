@@ -63,11 +63,11 @@ class GameEnv(gym.Env):
             line of sight, direction
         """
         self.observation_space = spaces.Box(
-            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                          dtype=np.float32),
-            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                           1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                           dtype=np.float32),
             dtype=np.float32
         )
@@ -115,18 +115,24 @@ class GameEnv(gym.Env):
             if tile.clipline((self.player.x, self.player.y), (cc.x, cc.y)):
                 line_of_sight = 0.0
 
+        p_pos = np.array([self.player.x, self.player.y])
+
         left_or_right = 0.5
+        c_dist = 1
         if closest_coin is not None:
             left_or_right = 1 if (closest_coin.x > self.player.x) else 0
+            c_pos = np.array([closest_coin.x, closest_coin.y])
+            c_dist = np.linalg.norm(p_pos - c_pos)
 
-
+        e_dist = -1
+        if closest_rect is not None:
+            ce_pos = np.array([closest_rect.x, closest_rect.y])
+            e_dist = np.linalg.norm(p_pos - ce_pos)
 
         return np.array([self.player.x / self.screen_width,
                          self.player.y / self.screen_height,
-                         (closest_rect.x / self.screen_width) if closest_rect is not None else 1,
-                         (closest_rect.y / self.screen_height) if closest_rect is not None else 1,
-                         (closest_coin.x / self.screen_width) if closest_coin is not None else 1,
-                         closest_coin.y / self.screen_height if closest_coin is not None else 1,
+                         (e_dist / self.screen_width) if e_dist != -1 else 1,
+                         (c_dist / self.screen_width) if c_dist != -1 else 1,
                          self.collide[3],
                          self.collide[2],
                          self.collide[0],
@@ -153,6 +159,9 @@ class GameEnv(gym.Env):
         self.invincible_timer = 60
         self.player_direction = 1
         self.scroll_x = 0 
+        
+        self.prev_coin_dist = None
+        self.prev_enemy_dist = None
         
         self.remaining_coins = 0
         self.max_coins = 0

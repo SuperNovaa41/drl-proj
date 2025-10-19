@@ -15,24 +15,7 @@ sys.path.append(parent_dir)
 
 from mario.env import GameEnv
 
-"""
-env = GameEnv()
-model = PPO.load("game_dqn", env=env)
-
-obs, info = env.reset()
-ep_reward = 0
-while True:
-    action, _ = model.predict(obs)
-    obs, reward, terminated, truncated, info = env.step(action)
-    ep_reward += reward
-    env.render()
-    if terminated or truncated:
-        print(f"Episode reward: {ep_reward}")
-        obs, info = env.reset()
-        ep_reward = 0
-"""
-
-def run_episode(model, reward_mode="coins", render=False):
+def run_episode_mario(model, reward_mode="coins", render=False):
     env = GameEnv()
     obs, info = env.reset()
     done = trunc = False
@@ -48,7 +31,6 @@ def run_episode(model, reward_mode="coins", render=False):
         left += int(action == 0)
         right += int(action == 1)
         jump += int(action == 2)
-        print(action)
 
         obs, r, done, trunc, info = env.step(action)
         ep_reward += r
@@ -68,8 +50,34 @@ def run_episode(model, reward_mode="coins", render=False):
         "truncated": int(trunc)
     }
 
+def do_mario_run(model, episodes, reward_mode, render):
+    rows = []
+    for ep in range(1, episodes + 1):
+        metrics = run_episode_mario(model, reward_mode=reward_mode, render=bool(render))
+        metrics["episode"] = ep
+        rows.append(metrics)
+
+    mean_reward = float(np.mean([r["reward"] for r in rows]))
+    std_reward = float(np.std([r["reward"] for r in rows]))
+    
+    mean_left = float(np.mean([r["left"] for r in rows]))
+    mean_right = float(np.mean([r["right"] for r in rows]))
+    mean_jump = float(np.mean([r["jumps"] for r in rows]))
+
+    print(f"Episodes: {len(rows)}")
+    print(f"Mean reward: {mean_reward:.2f} +/- {std_reward:.2f}")
+    print(f"Mean left movements: {mean_left:.2f}")
+    print(f"Mean right movements: {mean_right:.2f}")
+    print(f"Mean jumps: {mean_jump:.2f}")
+
+    fieldnames = ["episode", "reward", "steps", "left", "right", "jumps", "died", "truncated"]
+
+    return rows, fieldnames
+
+
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument("--env", type=str)
     p.add_argument("--model_type", type=str, default="DQN")
     p.add_argument("--model_path", type=str)
     p.add_argument("--episodes", type=int, default=10)
@@ -90,26 +98,11 @@ def main():
         print(f"Model type {args.model_type} not found.")
         exit(-1)
 
-    rows = []
-    for ep in range(1, args.episodes + 1):
-        metrics = run_episode(model, reward_mode=args.reward_mode, render=bool(args.render))
-        metrics["episode"] = ep
-        rows.append(metrics)
-
-    mean_reward = float(np.mean([r["reward"] for r in rows]))
-    std_reward = float(np.std([r["reward"] for r in rows]))
-    
-    mean_left = float(np.mean([r["left"] for r in rows]))
-    mean_right = float(np.mean([r["right"] for r in rows]))
-    mean_jump = float(np.mean([r["jumps"] for r in rows]))
-
-    print(f"Episodes: {len(rows)}")
-    print(f"Mean reward: {mean_reward:.2f} +/- {std_reward:.2f}")
-    print(f"Mean left movements: {mean_left:.2f}")
-    print(f"Mean right movements: {mean_right:.2f}")
-    print(f"Mean jumps: {mean_jump:.2f}")
-
-    fieldnames = ["episode", "reward", "steps", "left", "right", "jumps", "died", "truncated"]
+    if args.env == "mario":
+        rows, fieldnames = do_mario_run(model, args.episodes, args.reward_mode, args.render)
+    else:
+        print(f"Environment ({args.env}) not found.")
+        exit(-1)
 
     with open(args.csv_out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
@@ -117,7 +110,10 @@ def main():
         for row in rows:
             w.writerow(row)
 
-    print(f"Saved meetrics to {args.csv_out}")
+    print(f"Saved metrics to {args.csv_out}")
 
+
+
+    
 if __name__ == "__main__":
     main()

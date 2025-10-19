@@ -14,21 +14,19 @@ sys.path.append(parent_dir)
 
 from mario.env import GameEnv
 
-def make_env():
-    env = GameEnv()
-    env = Monitor(env)
-    return env
+def make_env(env):
+    if (env == "mario"):
+        e = GameEnv()
+    else:
+        print(f"Environment ({env}) doesn't exist")
+        exit(-1)
 
-"""
-env = GameEnv()
-model = PPO("MlpPolicy", env, verbose = 1)
-model.learn(total_timesteps = 100000)
-model.save("game_dqn")
-"""
-
+    e = Monitor(e)
+    return e
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str)
     parser.add_argument("--model_type", type=str, default="PPO")
     parser.add_argument("--timesteps", type=int, default=200_000)
     parser.add_argument("--reward_mode", type=str, default="coins", choices=["coins","enemies"])
@@ -41,7 +39,7 @@ def main():
     os.makedirs(args.logdir, exist_ok=True)
     os.makedirs(args.modeldir, exist_ok=True)
 
-    env = make_env()
+    env = make_env(args.env)
     
     if args.model_type == "PPO":
         model = PPO(
