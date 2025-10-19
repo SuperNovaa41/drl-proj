@@ -98,14 +98,14 @@ def do_mario_run(model, episodes, reward_mode, render):
             "died", "truncated", "score",
             "coins_collected", "enemies_killed",
             "levels_passed"
-    }
+    ]
 
     return rows, fieldnames
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--env", type=str)
+    p.add_argument("--env", type=str, default="mario")
     p.add_argument("--model_type", type=str, default="DQN")
     p.add_argument("--model_path", type=str)
     p.add_argument("--episodes", type=int, default=10)
@@ -120,7 +120,7 @@ def main():
 
     csv_path = args.csv_out
     if def_csv_out == args.csv_out:
-        csv_path = args.csv_out + args.env + ".csv"
+        csv_path = args.csv_out + args.env + "_" + args.reward_mode + ".csv"
 
     os.makedirs(os.path.dirname(csv_path), exist_ok=True)
     if (args.model_type == "PPO"):
