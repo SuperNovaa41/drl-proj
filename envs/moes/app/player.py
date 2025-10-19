@@ -35,7 +35,10 @@ class Player(pygame.sprite.Sprite):
         # Pygame rect object created
         self.rect = self.image.get_rect().inflate(-2,0)
         self.position = self.rect.topleft
+        # sprite one for when no rl
         self.collision_group = pygame.sprite.Group()
+        # for rl
+        self.collision_group = []
         self.direction = 0
         self.actstate = {"walking":False,"idle":False,"jumping":False,"falling":False, "hit":False}
         self.currstate = "idle"

@@ -14,7 +14,10 @@ from envs.moes.app import player
 
 # Only need crab and spike for first few levels
 class Crab(pygame.sprite.Sprite):
+    # pos passed in was (x,y), collison group = self.collidables (python list [] for drl)
     def __init__(self,pos,collisiongroup):
+
+        # When drl = false
         pygame.sprite.Sprite.__init__(self)
         # adjusted path for drl environment folder structure
         self.images = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"crab.png",1),(8,8))[0]
@@ -22,11 +25,20 @@ class Crab(pygame.sprite.Sprite):
         self.image = self.images[0]
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
+        # may need to account for this in render
         self.hitbox = self.rect.copy().inflate(-2,-2)
         self.collisiongroup = collisiongroup
-
+        ############################################
+        
         self.dir = True
         self.frame = 0
+
+        # drl init
+        self.x = pos[0]
+        self.y = pos[1]
+        self.width = 8
+        self.height =  8
+        self.collisiongroup = collisiongroup
 
     def move(self,x,y,rfix = False):
         self.move_single_axis(round(x), 0)

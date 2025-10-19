@@ -20,14 +20,8 @@ from envs.moes.app import utilities
 class Platformer(state.State):
     def __init__(self, game):
         state.State.__init__(self,game)
-        # causing drl training error
-        if self.game.drl_mode == False:
-            self.tempsurf = pygame.Surface((200,160))
+
         self.player = player.Player(self)
-        # Sprites causing drl issue
-        if self.game.drl_mode == False:
-            self.collidables = pygame.sprite.Group()
-            self.decor = pygame.sprite.Group()
 
         self.level1 = level.level1
         self.level2 = level.level2
@@ -49,8 +43,16 @@ class Platformer(state.State):
         # light brown
         self.ground_colour = (244, 164, 96)
 
+        # Stores collidable data, image free for rl
+        self.collidables = []
+        self.player.collision_group = self.collidables
 
+        # Not for ai
         if self.game.drl_mode == False:
+            self.tempsurf = pygame.Surface((200,160))
+            self.collidables = pygame.sprite.Group()
+            self.decor = pygame.sprite.Group()
+
             self.coinimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"coin.png",1)
             self.heartimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"heart.png",1)
             self.bridgeimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"bridge.png",1),(8,8))
@@ -62,20 +64,20 @@ class Platformer(state.State):
 
             # issue here, collidables using sprites
             self.player.collision_group = self.collidables
-        self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
-        #self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
 
-        self.coins = 0
-        self.lives = 3
-        self.health = 3
-
-        # DRL doesn't need music
-        if self.game.drl_mode == False:
             self.jumpsound = utilities.loadSound(os.path.join("data", "sounds"),"jump.wav")
             self.oneupsound = utilities.loadSound(os.path.join("data", "sounds"), "1up.wav")
             self.jumpsound.set_volume(.5)
             self.hitsound = utilities.loadSound(os.path.join("data", "sounds"), "hit.wav")
             self.healthsound = utilities.loadSound(os.path.join("data", "sounds"), "health.wav")
+
+            # need to adjust camera 
+            self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
+            #self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
+
+        self.coins = 0
+        self.lives = 3
+        self.health = 3
         
         self.hud = hud.hud(self)
 
@@ -147,7 +149,7 @@ class Platformer(state.State):
             self.oneupsound.play()
             self.coins -= 100
 
-    # Olly added for simple RL agent rendering
+    # Olly added for simple RL agent rendering- fix later
     def render_rl(self):
         # flat color background - dark blue
         self.tempsurf.fill((50, 50, 100)) 
@@ -217,6 +219,10 @@ class Platformer(state.State):
             i.kill()
         for i in self.decor:
             i.kill()
+
+    # Below logic modified for rl
+    def levelparse_rl(self,level):
+        pass
     
     # Changes wierd letters to a map, associating ie g with ground platform, c with coins
     # Parsing happens in levelselect before player enters level
@@ -233,7 +239,6 @@ class Platformer(state.State):
         self.currentlvl = level["num"]
         # images loading for normal game
         if self.game.drl_mode == False:
-            print("we here")
             self.backgroundimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["background image"])
             #self.backgroundimage = utilities.loadImage(os.path.join("data","images"),level["background image"])
             groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["ground image"],1),(8,8))
@@ -247,7 +252,7 @@ class Platformer(state.State):
             dimages.append(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),i,1))
             #dimages.append(utilities.loadImage(os.path.join("data","images"),i,1))
 
-        self.camera = camera.Camera(self.player, (self.get_tempsurf().get_width(),self.get_tempsurf().get_height()),
+        self.camera = camera.Camera(self.player, (self.tempsurf.get_width(),self.tempsurf.get_height()),
                                     (len(level["map"][0] * 8), len(level["map"] * 8)))
 
         # self.camera = camera.Camera(self.player, (self.tempsurf.get_width(), self.tempsurf.get_height()),
