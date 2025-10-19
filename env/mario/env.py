@@ -20,8 +20,10 @@ class GameEnv(gym.Env):
             for line in file:
                 self.level_map.append(line)
 
-    def __init__(self):
+    def __init__(self, reward_mode: str = "coins"):
         super(GameEnv, self).__init__()
+
+        self.reward_mode = reward_mode
 
         self.screen_width, self.screen_height = 800, 600
         self.gravity = 0.5
@@ -158,16 +160,15 @@ class GameEnv(gym.Env):
         self.jump = False
         self.invincible_timer = 60
         self.player_direction = 1
-        self.scroll_x = 0 
+        self.scroll_x = 0
 
         self.coins_collected = 0
         self.levels_passed = 0
         self.enemies_killed = 0
 
-        
         self.prev_coin_dist = None
         self.prev_enemy_dist = None
-        
+
         self.remaining_coins = 0
         self.max_coins = 0
         self.remaining_enemies = 0
@@ -179,7 +180,6 @@ class GameEnv(gym.Env):
 
         self.coin_penalty = 50
         self.coin_modifier = 0
-
 
         self.steps = 0
         self.max_steps = 1000
@@ -256,7 +256,10 @@ class GameEnv(gym.Env):
                 curr_coin_dist = np.linalg.norm(p_pos - cc_pos)
                 if prev_coin_dist is not None:
                     delta = prev_coin_dist - curr_coin_dist
-                    reward += delta * 0.1
+                    if self.reward_mode == "coins":
+                        reward += delta * 0.1
+                    else:
+                        reward += delta * 0.05
                 self.prev_coin_dist = curr_coin_dist
             else:
                 self.prev_coin_dist = None
@@ -270,7 +273,10 @@ class GameEnv(gym.Env):
 
                 if prev_enemy_dist is not None:
                     delta_e = prev_enemy_dist - curr_enemy_dist
-                    reward += delta_e * 0.05
+                    if self.reward_mode == "coins":
+                        reward += delta_e * 0.05
+                    else:
+                        reward += delta_e * 0.1
                 self.prev_enemy_dist = curr_enemy_dist
             else:
                 self.prev_enemy_dist = None
@@ -329,7 +335,10 @@ class GameEnv(gym.Env):
                 if self.player.colliderect(coin):
                     self.coins.remove(coin)
                     self.score += 10
-                    reward += 10
+                    if self.reward_mode == "coins":
+                        reward += 10
+                    else:
+                        reward += 5 # less for enemy hunting mode
                     self.remaining_coins -= 1
 
                     self.coins_collected += 1
@@ -369,9 +378,12 @@ class GameEnv(gym.Env):
                         enemy[2] = False # kill enemy
                         self.vel_y = self.jump_force // 2
                         self.score += 50
-                        reward += 20
                         self.enemies_killed += 1
                         self.remaining_enemies -= 1
+                        if self.reward_mode == "coins":
+                            reward += 20
+                        else:
+                            reward += 50
                     else:
                         self.lives -= 1
                         self.invincible_timer = 120
