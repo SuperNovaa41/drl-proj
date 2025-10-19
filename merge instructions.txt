@@ -1,0 +1,7 @@
+From original a1-olly, do whatever changes, commit to repo like usual
+When want to update merged repo, go to drl-proj
+git branch -a (sees branches)
+git checkout a1-olly (changes to my branch)
+git fetch a1-olly (grabs changes from personal)
+git merge a1-olly/main
+git push (now drl-proj a1-olly branch updated)

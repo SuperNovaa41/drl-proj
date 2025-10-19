@@ -93,13 +93,17 @@ class MoesEnv(gym.Env):
         # handle rewards
         reward = 0.0
 
-        # handle different modes like coins/survival later, for now simple reward for staying alive/reaching goal
-        reward += 0.1
+        # Reward system for default reaching flag
+        reward += 0.05
 
-        # want to add reward based on euclidean distance (x and y) to flag
-        # every time we get closer, slight reward
+        # Flag for most levels is at the right (at least first 3) - give reward for going right
+        if action == 2:
+            reward += 0.1
 
-        if terminated:
+        if terminated and self.game.curr_state == self.game.winscreen:
+            reward += 1
+
+        if terminated and self.game.curr_state == self.game.deathscreen:
             reward -= 1.0
 
         # could calculate x and y coords here, then pass in here, to use above for distance from flag
@@ -174,10 +178,10 @@ class MoesEnv(gym.Env):
         down_coin_distance = self._get_distance_item_down(yt, xt, coin, current_map, level_height)
         up_coin_distance = self._get_distance_item_up(yt, xt, coin, current_map, level_height)
 
-        # Distance to goal
-        l_goal_distance = self._get_distance_item_left(yt, xt, goal, current_map, level_width)
-        r_goal_distance = self._get_distance_item_right(yt, xt, goal, current_map, level_width)
-        down_goal_distance = self._get_distance_item_down(yt, xt, goal, current_map, level_height)
+        # Distance to goal - flag is above player
+        #l_goal_distance = self._get_distance_item_left(yt, xt, goal, current_map, level_width)
+        #r_goal_distance = self._get_distance_item_right(yt, xt, goal, current_map, level_width)
+        #down_goal_distance = self._get_distance_item_down(yt, xt, goal, current_map, level_height)
         up_goal_distance = self._get_distance_item_up(yt, xt, goal, current_map, level_height)
 
         obs = np.array([
