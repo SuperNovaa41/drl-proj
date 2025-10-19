@@ -18,7 +18,7 @@ sys.path.append(parent_dir)
 from mario.env import GameEnv
 
 def run_episode_mario(model, reward_mode="coins", render=False):
-    env = GameEnv()
+    env = GameEnv(reward_mode)
     obs, info = env.reset()
     done = trunc = False
 
@@ -120,7 +120,7 @@ def main():
 
     csv_path = args.csv_out
     if def_csv_out == args.csv_out:
-        csv_path = args.csv_out + args.env + "_" + args.reward_mode + ".csv"
+        csv_path = args.csv_out + args.env + "_" + args.reward_mode + "_" + args.model-type + ".csv"
 
     os.makedirs(os.path.dirname(csv_path), exist_ok=True)
     if (args.model_type == "PPO"):

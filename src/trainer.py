@@ -14,9 +14,9 @@ sys.path.append(parent_dir)
 
 from mario.env import GameEnv
 
-def make_env(env):
+def make_env(env, reward_mode):
     if (env == "mario"):
-        e = GameEnv()
+        e = GameEnv(reward_mode)
     else:
         print(f"Environment ({env}) doesn't exist")
         exit(-1)
@@ -39,7 +39,7 @@ def main():
     os.makedirs(args.logdir, exist_ok=True)
     os.makedirs(args.modeldir, exist_ok=True)
 
-    env = make_env(args.env)
+    env = make_env(args.env, args.reward_mode)
     
     if args.model_type == "PPO":
         model = PPO(
