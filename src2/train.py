@@ -26,8 +26,8 @@ def main():
     parser.add_argument("--reward_mode", type=str, default=None)
     #parser.add_argument("--reward_mode", type=str, default="survival", choices=["survival", "coverage"])
     parser.add_argument("--seed", type=int, default=7)
-    parser.add_argument("--logdir", type=str, default="a1-olly/logs")
-    parser.add_argument("--modeldir", type=str, default="a1-olly/models")
+    parser.add_argument("--logdir", type=str, default="../logs2")
+    parser.add_argument("--modeldir", type=str, default="../models2")
     args = parser.parse_args()
 
     os.makedirs(args.logdir, exist_ok=True)

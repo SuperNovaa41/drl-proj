@@ -12,6 +12,7 @@ from envs.moes.app import blocks
 from envs.moes.app import utilities
 from envs.moes.app import player
 
+# Only need crab and spike for first few levels
 class Crab(pygame.sprite.Sprite):
     def __init__(self,pos,collisiongroup):
         pygame.sprite.Sprite.__init__(self)

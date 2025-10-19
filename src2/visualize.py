@@ -11,7 +11,7 @@ from envs.moes.moes_env import MoesEnv
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", type=str, default="a1-olly/models/ppo_moes_test")
+    parser.add_argument("--model_path", type=str, default="../models2/ppo_moes_test")
     parser.add_argument("--fps", type=int, default=60)
     args = parser.parse_args()
 

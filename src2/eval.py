@@ -42,11 +42,11 @@ def run_episode(model, reward_mode=None, render=False):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--model_path", type=str, default="a1-olly/models/ppo_moes_test")
+    p.add_argument("--model_path", type=str, default="../models2/ppo_moes_test")
     p.add_argument("--episodes", type=int, default=10)
     p.add_argument("--render", type=int, default=0)
     #p.add_argument("--reward_mode", type=str, default="survival", choices=["survival", "coverage"])
-    p.add_argument("--csv_out", type=str, default="a1-olly/logs/test_eval_metrics.csv")
+    p.add_argument("--csv_out", type=str, default="../logs2/test_eval_metrics.csv")
     args = p.parse_args()
 
     if not os.path.exists(args.model_path + ".zip"):
