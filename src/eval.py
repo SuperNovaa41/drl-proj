@@ -16,6 +16,35 @@ parent_dir = os.path.join(curr_dir, '..', 'envs')
 sys.path.append(parent_dir)
 
 from mario.env import GameEnv
+from moes.moes_env import MoesEnv
+
+def run_episode_moes(model, reward_mode=None, render=False):
+    env = MoesEnv(render_mode="human" if render else None, reward_mode=reward_mode)
+    obs, info = env.reset()
+    done = trunc = False
+
+    ep_reward = 0.0
+    setups = 0
+    # Metric, I need to come up with some 
+
+    while not (done or trunc):
+        action, _ = model.predict(obs)
+        obs, r, done, trunc, info = env.step(action)
+        ep_reward += r
+        steps += 1
+
+    coins_collected = int(info.get("coins_collected", 0))
+    level_completed = int(info.get("is_level_complete"), 0)
+
+    env.close()
+    return {
+        "reward": float(ep_reward),
+        "coins_collected": coins_collected,
+        "steps": steps,
+        "crashed": int(done and not trunc)
+        "truncated": int(trunc),
+        "is_level_complete": level_completed,
+    }
 
 def run_episode_mario(model, reward_mode="coins", render=False):
     env = GameEnv(reward_mode)
@@ -62,6 +91,26 @@ def run_episode_mario(model, reward_mode="coins", render=False):
         "levels_passed": levels_passed
     }
 
+def do_moes_run(model, episodes, reward_mode, render):
+    rows = []
+    for ep in range(1, args.episodes + 1):
+        metrics = run_episode_moes(model, reward_mode=reward_mode, render=bool(render))
+        metrics["episode"] = ep
+        rows.append(metrics)
+
+    mean_reward = float(np.mean([r["reward"] for r in rows]))
+    std_reward  = float(np.std([r["reward"] for r in rows]))
+    mean_coins  = float(np.mean([r["coins_collected"] for r in rows]))
+    crash_rate  = float(np.mean([r["crashed"] for r in rows]))
+
+    print(f"Episodes: {len(rows)}")
+    print(f"Mean reward: {mean_reward:.2f} ± {std_reward:.2f}")
+    print(f"Mean coins collected: {mean_coins:.2f}")
+    print(f"Crash rate: {crash_rate*100:.1f}%")
+
+    # Per-episode CSV
+    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated","is_level_complete"]
+    return rows, fieldnames
 
 def do_mario_run(model, episodes, reward_mode, render):
     rows = []
@@ -105,7 +154,7 @@ def do_mario_run(model, episodes, reward_mode, render):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--env", type=str, default="mario")
+    p.add_argument("--env", type=str, choices=["mario", "moes"])
     p.add_argument("--model_type", type=str, default="DQN")
     p.add_argument("--model_path", type=str)
     p.add_argument("--episodes", type=int, default=10)
@@ -133,6 +182,8 @@ def main():
 
     if args.env == "mario":
         rows, fieldnames = do_mario_run(model, args.episodes, args.reward_mode, args.render)
+    elif args.env == "moes":
+        rows, fieldnames = do_moes_run(model, args.episodes, args.reward_mode, args.render)
     else:
         print(f"Environment ({args.env}) not found.")
         exit(-1)
