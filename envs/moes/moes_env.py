@@ -92,8 +92,8 @@ class MoesEnv(gym.Env):
         level_time = self.game.platformer.hud.get_time()
 
         # truncated = technical limit, ie level time limit so agent doesn't play endlessly
-        # Agent gets 5 minutes max to beat a level
-        if level_time >= 300:
+        # Agent gets 2 minutes max to beat a level
+        if level_time >= 120:
             truncated = True
         # could potentially add truncation for agent walking into a wall/idle
 

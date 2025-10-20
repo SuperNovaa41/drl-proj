@@ -36,8 +36,8 @@ class Camera():
         if self.offset[1] < self.screensize[1] - self.levelsize[1]:
             self.offset = utilities.sety(self.offset, self.screensize[1] - self.levelsize[1])
 
-        print("offset" + str(self.offset))
-        print(self.screensize[1] - self.levelsize[1])
+        # print("offset" + str(self.offset))
+        # print(self.screensize[1] - self.levelsize[1])
 
     def get_offset(self):
         return self.offset

@@ -22,7 +22,7 @@ def make_env(render_mode=None, reward_mode=None, seed=7):
 def main():
     parser = argparse.ArgumentParser()
     # would run python train.py and it would default do 200 000
-    parser.add_argument("--timesteps", type=int, default=200_000)
+    parser.add_argument("--timesteps", type=int, default=80_000)
     parser.add_argument("--reward_mode", type=str, default=None)
     #parser.add_argument("--reward_mode", type=str, default="survival", choices=["survival", "coverage"])
     parser.add_argument("--seed", type=int, default=7)
