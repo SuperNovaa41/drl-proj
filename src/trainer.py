@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--env", type=str, choices=["mario","moes"])
     parser.add_argument("--model_type", type=str, default="DQN")
     parser.add_argument("--timesteps", type=int, default=200_000)
-    parser.add_argument("--reward_mode", type=str, default="coins", choices=["coins","enemies"])
+    parser.add_argument("--reward_mode", type=str)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--logdir", type=str, default="logs")
     parser.add_argument("--modeldir", type=str, default="models")

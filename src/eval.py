@@ -159,7 +159,7 @@ def main():
     p.add_argument("--model_path", type=str)
     p.add_argument("--episodes", type=int, default=10)
     p.add_argument("--render", type=int, default=0)
-    p.add_argument("--reward_mode", type=str, default="coins", choices=["coins", "enemies"])
+    p.add_argument("--reward_mode", type=str)
     def_csv_out = "logs/eval_metrics_"
     p.add_argument("--csv_out", type=str, default=def_csv_out)
     args = p.parse_args()
