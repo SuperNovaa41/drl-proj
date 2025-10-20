@@ -46,7 +46,10 @@ class Platformer(state.State):
 
         # Stores collidable data, image free for rl
         self.collidables = []
-        self.player.collision_group = self.collidables
+        self.decor = []
+        self.player.collisiongroup = self.collidables
+        #self.tempsurf = None
+        #self.screen = None
 
         # Not for ai
         if self.game.drl_mode == False:
@@ -64,7 +67,7 @@ class Platformer(state.State):
             #self.treeimage = utilities.loadImage(os.path.join("data","images"),"palmtree1.png" , 1)
 
             # issue here, collidables using sprites
-            self.player.collision_group = self.collidables
+            self.player.collisiongroup = self.collidables
 
             self.jumpsound = utilities.loadSound(os.path.join("data", "sounds"),"jump.wav")
             self.oneupsound = utilities.loadSound(os.path.join("data", "sounds"), "1up.wav")
@@ -77,6 +80,7 @@ class Platformer(state.State):
 
         # call in render for human visualisation?
         #self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
+        self.camera = camera.Camera(self.player,(self.game.screen_width,self.game.screen_height),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
 
         self.coins = 0
         self.lives = 3
@@ -100,7 +104,7 @@ class Platformer(state.State):
         if self.game.actions["a"] and not self.player.hasjumped:
             if self.player.jumptimer <= 0  and self.player.groundcount > 0 :
                 self.player.jumptimer = 25
-                self.jumpsound.play()
+                #self.jumpsound.play()
                 self.player.actstate["jumping"] = True
                 self.player.hasjumped = True
 
@@ -144,52 +148,84 @@ class Platformer(state.State):
         if self.game.drl_mode == False:
             self.collidables.update()
         # handle this elsewhere
-        #self.camera.update()
+        self.camera.update()
         self.hud.update()
         if self.health <= 0:
             self.die()
         if self.coins > 100:
             self.lives += 1
-            self.oneupsound.play()
+            #self.oneupsound.play()
             self.coins -= 100
 
     # Olly added for simple RL agent rendering- fix later
-    def render_rl(self):
+    def render_rl(self, screen):
         # flat color background - dark blue
-        self.tempsurf.fill((50, 50, 100)) 
+        # self.tempsurf.fill((50, 50, 100)) 
+        # self._screen.fill((30, 30, 36))
+        screen.fill((50, 50, 100))
 
         # draw blocks - gray
         for i in self.decor:
-            pygame.draw.rect(self.tempsurf, (100, 100, 100), i.rect)
+            pygame.draw.rect(screen, (100, 100, 100), i.rect)
         
-        # draw enemies - green
-        for i in self.collidables.sprites():
-            pygame.draw.rect(self.tempsurf, (0, 255, 0), i.rect)
+        # draw enemies - red (crabs and spikes)
+        # issue, all blocks will be red
+        for i in self.collidables:
+            pygame.draw.rect(screen, (255, 0, 0), i.rect)
 
-        # draw player - red rectangle
-        pygame.draw.rect(self.tempsurf, (255, 0, 0), self.player.rect)
+        # draw player - green
+        pygame.draw.rect(screen, (0, 255, 0), self.player.rect)
 
-        # don't need to render hud for rl (can see wanted data through info)
+        # need to handle camera
 
     # Regular gameplay rendering vs rl
-    def render(self):
-        if self.game.drl_mode == False:
-            print(self.backgroundimage)
-            self.tempsurf.blit(self.backgroundimage,(0,0))
-            for i in self.decor:
-                self.camera.draw_sprite(self.tempsurf,i)
-            for i in self.collidables.sprites():
-                self.camera.draw_sprite(self.tempsurf,i)
-                #it = i.rect.copy()
-                #it.topleft = utilities.add_pos(i.rect.topleft,self.camera.offset)
-                #pygame.draw.rect(self.tempsurf,(90,90,90),it,1)
+    def render(self,screen):
+        self.render_rl(screen)
 
-            self.camera.draw_sprite(self.tempsurf, self.player)
-            self.hud.render(self.tempsurf)
-            self.game.screen.blit(pygame.transform.scale(self.tempsurf,(800,640)),(0,0))
-        else:
-            print("we here")
-            self.render_rl()
+        # if self.game.drl_mode == False:
+        #     print(self.backgroundimage)
+        #     self.tempsurf.blit(self.backgroundimage,(0,0))
+        #     for i in self.decor:
+        #         self.camera.draw_sprite(self.tempsurf,i)
+        #     for i in self.collidables.sprites():
+        #         self.camera.draw_sprite(self.tempsurf,i)
+        #         #it = i.rect.copy()
+        #         #it.topleft = utilities.add_pos(i.rect.topleft,self.camera.offset)
+        #         #pygame.draw.rect(self.tempsurf,(90,90,90),it,1)
+
+        #     self.camera.draw_sprite(self.tempsurf, self.player)
+        #     self.hud.render(self.tempsurf)
+        #     self.game.screen.blit(pygame.transform.scale(self.tempsurf,(800,640)),(0,0))
+        # else:
+        #     self.render_rl()
+
+    def render(self,screen):
+        #self.tempsurf.blit(self.backgroundimage,(0,0))
+        screen.fill((173, 216, 230))
+        for i in self.decor:
+            # decor will be grey
+            self.camera.draw_rect(screen, i, (100, 100, 100))
+            #self.camera.draw_sprite(screen,i)
+
+        # Crabs and spikes red, coins and hearts yellow, everything else brown
+        for i in self.collidables:
+            if isinstance(i,baddies.Crab) or isinstance(i,baddies.Spike):
+                self.camera.draw_rect(screen, i, (255, 0, 0))
+            # coins and hearts are yellow
+            elif isinstance(i, blocks.collectable):
+                self.camera.draw_rect(screen, i, (255, 215, 0))
+            else:
+                self.camera.draw_rect(screen, i, (181, 101, 29))
+            # self.camera.draw_sprite(screen,i)
+            #it = i.rect.copy()
+            #it.topleft = utilities.add_pos(i.rect.topleft,self.camera.offset)
+            #pygame.draw.rect(self.tempsurf,(90,90,90),it,1)
+
+        #self.camera.draw_sprite(screen, self.player)
+        # Player is green
+        self.camera.draw_rect(screen, self.player, (0, 255, 0))
+        #self.hud.render(self.tempsurf)
+        #self.game.screen.blit(pygame.transform.scale(screen,(800,640)),(0,0))
 
     # There is a certain tile for the direction [down, up, right, left]
     # g = ground, b = the platform player can down arrow to go through
@@ -217,38 +253,34 @@ class Platformer(state.State):
             loh[3] = 0
         return loh
 
-    # issue here with collidables
-    def lvlclear(self):
-        for i in self.collidables:
-            i.kill()
-        for i in self.decor:
-            i.kill()
-
-    # Below logic modified for rl
-    def levelparse_rl(self,level):
-        pass
+    # just for sprites
+    # def lvlclear(self):
+    #     for i in self.collidables:
+    #         i.kill()
+    #     for i in self.decor:
+    #         i.kill()
     
     # Changes wierd letters to a map, associating ie g with ground platform, c with coins
     # Parsing happens in levelselect before player enters level
     # Adds the letters to different groups (blocks,collidables,etc) to later be rendered
     # through render function
     def levelparse(self,level):
-        self.lvlclear()
-        if self.game.drl_mode == False:
-            pygame.mixer.music.unload()
-            pygame.mixer.music.load(os.path.join("data","music",level["music"]))
-            pygame.mixer.music.play(-1)
-            pygame.mixer.music.set_volume(.5)
+        # self.lvlclear()
+        # if self.game.drl_mode == False:
+        #     pygame.mixer.music.unload()
+        #     pygame.mixer.music.load(os.path.join("data","music",level["music"]))
+        #     pygame.mixer.music.play(-1)
+        #     pygame.mixer.music.set_volume(.5)
         map = level["map"]
         self.currentlvl = level["num"]
         # images loading for normal game
-        if self.game.drl_mode == False:
-            self.backgroundimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["background image"])
-            #self.backgroundimage = utilities.loadImage(os.path.join("data","images"),level["background image"])
-            groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["ground image"],1),(8,8))
-            #groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),level["ground image"],1),(8,8))
-            miscblocks = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"miscblocks.png",1),(8,8))
-            #miscblocks = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"), "miscblocks.png",1),(8,8))
+        # if self.game.drl_mode == False:
+        #     self.backgroundimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["background image"])
+        #     #self.backgroundimage = utilities.loadImage(os.path.join("data","images"),level["background image"])
+        #     groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),level["ground image"],1),(8,8))
+        #     #groundimages = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"),level["ground image"],1),(8,8))
+        #     miscblocks = utilities.loadSpriteSheet(utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"miscblocks.png",1),(8,8))
+        #     #miscblocks = utilities.loadSpriteSheet(utilities.loadImage(os.path.join("data","images"), "miscblocks.png",1),(8,8))
         
         
         # dimages = []
@@ -258,6 +290,8 @@ class Platformer(state.State):
 
         # self.camera = camera.Camera(self.player, (self.tempsurf.get_width(), self.tempsurf.get_height()),
         #                             (len(level["map"][0] * 8), len(level["map"] * 8)))
+        self.camera = camera.Camera(self.player,(self.game.screen_width,self.game.screen_height),(len(level["map"][0] * 8), len(level["map"] * 8)))
+        
         x = 0
         y = 0
         for i in map:
@@ -269,87 +303,87 @@ class Platformer(state.State):
                     if loh == [1,0,1,0]:
                         # idea - could just not pass in image because we worry about it later and aren't using it
                         # create rectangle inside class
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                         #self.collidables.add(blocks.wall(groundimages[0][0],(x,y),self))
                     elif loh == [1,0,1,1]:
                         #self.collidables.add(blocks.wall(groundimages[0][1],(x,y),self))
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [1,0,0,1] and not lor == [ 0,1,0,1] and not lol == [ 0,1,1,0]:
                         #self.collidables.add(blocks.wall(groundimages[0][2],(x,y),self))
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [1,1,1,0]:
                         #self.collidables.add(blocks.wall(groundimages[1][0],(x,y),self))
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [1,1,1,1]:
                         #self.collidables.add(blocks.wall(groundimages[1][1],(x,y),self))
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [1,1,0,1]:
                         #self.collidables.add(blocks.wall(groundimages[1][2],(x,y),self))
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [0,1,1,0]:
                         #self.collidables.add(blocks.wall(groundimages[2][0],(x,y),self))
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [0,1,1,1]:
                         #self.collidables.add(blocks.wall(groundimages[2][1],(x,y),self))
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [0,1,0,1]:
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [0,0,1,0]:
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [0,0,1,1]:
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [0,0,0,1]:
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [0,0,0,0]:
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [1,0,0,0]:
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     elif loh == [1,1,0,0]:
-                        self.collidables.add(blocks.wall((x,y),self))
+                        self.collidables.append(blocks.wall((x,y),self))
                     if lor ==[0,1, 0, 0]:
-                        self.collidables.add(blocks.wall((x, y),self))
+                        self.collidables.append(blocks.wall((x, y),self))
                     elif lol == [0, 1, 0, 0]:
-                        self.collidables.add(blocks.wall((x, y),self))
+                        self.collidables.append(blocks.wall((x, y),self))
                     elif lor ==[0,0, 0, 1] and loh[1] == 0:
-                        self.collidables.add(blocks.wall((x, y),self))
+                        self.collidables.append(blocks.wall((x, y),self))
                     elif lol ==[0,0, 1, 0] and loh[1] == 0:
-                        self.collidables.add(blocks.wall((x, y),self))
+                        self.collidables.append(blocks.wall((x, y),self))
                     elif  lor == [ 0,1,0,1]:
-                        self.collidables.add(blocks.wall((x, y),self))
+                        self.collidables.append(blocks.wall((x, y),self))
                     elif  lol == [ 0,1,1,0]:
-                        self.collidables.add(blocks.wall((x, y),self))
+                        self.collidables.append(blocks.wall((x, y),self))
                 if k == "r":
-                    self.collidables.add(blocks.Ramp(self,(x,y),True))
+                    self.collidables.append(blocks.Ramp(self,(x,y),True))
                 if k == "l":
-                    self.collidables.add(blocks.Ramp(self,(x,y),False))
+                    self.collidables.append(blocks.Ramp(self,(x,y),False))
                 if k == "t":
-                    self.decor.add(blocks.decor((x,y)))
+                    self.decor.append(blocks.decor((x,y)))
                 if k == "T":
-                    self.decor.add(blocks.decor((x,y)))
+                    self.decor.append(blocks.decor((x,y)))
                 if k == "a":
-                    self.decor.add(blocks.decor((x,y)))
+                    self.decor.append(blocks.decor((x,y)))
                 if k == "b":
                     log = self.getsurroundings("g",map,x,y)
                     if log[2]:
-                        self.collidables.add(blocks.bridge(self, (x, y)))
+                        self.collidables.append(blocks.bridge(self, (x, y)))
                     elif log[3]:
-                        self.collidables.add(blocks.bridge(self, (x, y)))
+                        self.collidables.append(blocks.bridge(self, (x, y)))
                     else:
-                        self.collidables.add(blocks.bridge(self,(x,y)))
+                        self.collidables.append(blocks.bridge(self,(x,y)))
                 if k == "c":
-                    self.collidables.add(blocks.collectable(self,"coin",(x,y)))
+                    self.collidables.append(blocks.collectable(self,"coin",(x,y)))
                 if k == "h":
-                    self.collidables.add(blocks.collectable(self,"heart",(x,y)))
+                    self.collidables.append(blocks.collectable(self,"heart",(x,y)))
                 if k == "p":
-                    self.collidables.add(blocks.PushBlock((x,y),self.collidables,self))
+                    self.collidables.append(blocks.PushBlock((x,y),self.collidables,self))
                 if k == "P":
                     self.player.set_pos((x,y))
                 if k == "C":
-                    self.collidables.add(baddies.Crab((x,y),self.collidables))
+                    self.collidables.append(baddies.Crab((x,y),self.collidables))
                 if k == "f":
-                    self.collidables.add(blocks.finish((x,y)))
+                    self.collidables.append(blocks.finish((x,y)))
                 if k == "E":
-                    self.collidables.add(blocks.Finalfinish((x,y)))
+                    self.collidables.append(blocks.Finalfinish((x,y)))
                 # first 3 levels don't encounter these
                 # if k == "D":
                 #     self.collidables.add(baddies.Dog((x,y),self.collidables))
@@ -369,13 +403,13 @@ class Platformer(state.State):
                     log = self.getsurroundings("g",map,x,y)
                     try:
                         if log[0]:
-                            self.collidables.add(baddies.Spike((x,y),self.collidables, 0))
+                            self.collidables.append(baddies.Spike((x,y),self.collidables, 0))
                         elif log[1]:
-                            self.collidables.add(baddies.Spike((x,y),self.collidables, 1))
+                            self.collidables.append(baddies.Spike((x,y),self.collidables, 1))
                         elif log[2]:
-                            self.collidables.add(baddies.Spike((x,y),self.collidables, 2))
+                            self.collidables.append(baddies.Spike((x,y),self.collidables, 2))
                         elif log[3]:
-                            self.collidables.add(baddies.Spike((x,y),self.collidables, 3))
+                            self.collidables.append(baddies.Spike((x,y),self.collidables, 3))
                     except:
                         pass
                 x += 8

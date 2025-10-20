@@ -73,7 +73,7 @@ class LevelSelect(state.State):
                 # if self.current_sel == 11:
                 #     self.game.platformer.levelparse(self.game.platformer.level12)
 
-    def render(self):
+    def render(self,screen):
         self.game.screen.blit(pygame.transform.scale(self.mapimage,(self.game.screen_width,self.game.screen_height)),(0,0))
         pygame.draw.lines(self.game.screen, (25, 25, 25), False, self.points, 6)
         pygame.draw.lines(self.game.screen,(255,255,255),False,self.points,3)

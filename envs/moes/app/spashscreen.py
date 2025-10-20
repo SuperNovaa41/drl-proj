@@ -32,7 +32,7 @@ class SpashScreen(state.State):
         if self.countdown < -10:
             self.exit()
             self.game.start.enter()
-    def render(self):
+    def render(self,screen):
         tempsurf = pygame.Surface((self.game.screen_width,self.game.screen_height))
         tempsurf.blit(self.spashtext1,self.spashtext1rect)
         tempsurf.set_colorkey((0,0,0))

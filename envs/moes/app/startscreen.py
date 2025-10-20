@@ -40,7 +40,7 @@ class StartScreen(state.State):
             self.musicstart = False
             self.game.levelselection.enter()
 
-    def render(self):
+    def render(self,screen):
         rcolor = random.randint(20,60)
         tempsurf = pygame.Surface((self.game.screen_width,self.game.screen_height))
         tempsurf.blit(pygame.transform.scale(self.background,(800,640)),(0,0))

@@ -129,10 +129,11 @@ class game():
         self.curr_state.update()
 
     # need to double check for drl later
-    def render(self):
-        self.screen.fill((0,0,0))
-        self.curr_state.render()
-        pygame.display.update()
+    def render(self, screen):
+        #self.screen.fill((0,0,0))
+        self.curr_state.render(screen)
+        # pygame.display.flip() called in moes_env
+        #pygame.display.update()
     
     def gameloop(self):
         self.running = True

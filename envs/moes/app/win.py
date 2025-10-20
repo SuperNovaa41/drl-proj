@@ -36,6 +36,6 @@ class death(state.State):
             self.game.levelselection.enter()
             self.exit()
             self.game.platformer.health = 3
-    def render(self):
+    def render(self,screen):
         self.game.prev_state.render()
         self.game.screen.blit(self.death_text,self.death_text_rect)

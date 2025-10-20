@@ -14,7 +14,7 @@ from envs.moes.app import player
 
 # Need to apply what was done here to other needed enemies and blocks
 # Only need crab and spike for first few levels
-class Crab(pygame.sprite.Sprite):
+class Crab():
     # pos passed in was (x,y), collison group = self.collidables (python list [] for drl)
     def __init__(self,pos,collisiongroup):
 

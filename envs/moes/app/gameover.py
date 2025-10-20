@@ -26,6 +26,6 @@ class Gameover(state.State):
             self.game.levelselection.current_sel = 0
             self.game.platformer.health = 3
             self.exit()
-    def render(self):
+    def render(self,screen):
         self.game.prev_state.render()
         self.game.screen.blit(self.gameover_text, self.gameover_text_rect)

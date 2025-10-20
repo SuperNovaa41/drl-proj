@@ -20,6 +20,6 @@ class pause(state.State):
             self.game.pausecooldown = 20
             self.game.prev_state.enter()
             self.exit()
-    def render(self):
+    def render(self,screen):
         self.game.prev_state.render()
         self.game.screen.blit(self.pause_text,self.pause_text_rect)

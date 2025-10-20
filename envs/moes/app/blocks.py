@@ -195,11 +195,13 @@ class collectable(block):
             if self.type == "coin":
                 #self.coin_sound.play()
                 object.game.coins += 1
-                self.kill()
+                self.game.collidables.remove(self)
+                #self.kill()
             if self.type == "heart":
                 #self.game.healthsound.play()
                 self.game.health += 1
-                self.kill()
+                #self.kill()
+                self.game.collidables.remove(self)
     def update(self):
         if self.wdir == True:
             self.wobble += .1
