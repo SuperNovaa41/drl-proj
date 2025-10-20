@@ -36,16 +36,25 @@ class Camera():
         if self.offset[1] < self.screensize[1] - self.levelsize[1]:
             self.offset = utilities.sety(self.offset, self.screensize[1] - self.levelsize[1])
 
-        print("offset" + str(self.offset))
-        print(self.screensize[1] - self.levelsize[1])
+        # print("offset" + str(self.offset))
+        # print(self.screensize[1] - self.levelsize[1])
 
     def get_offset(self):
         return self.offset
     
     # Here screen.blit renders images, avoid drl calling this
-    def draw_sprite(self,screen,sprite):
-        if sprite.rect.colliderect(pygame.rect.Rect(utilities.sub_pos(screen.get_rect().topleft, self.offset),(screen.get_width(),screen.get_height()))):
-            screen.blit(sprite.image,utilities.add_pos(sprite.rect.topleft,self.offset))
+    # def draw_sprite(self,screen,sprite):
+    #     if sprite.rect.colliderect(pygame.rect.Rect(utilities.sub_pos(screen.get_rect().topleft, self.offset),(screen.get_width(),screen.get_height()))):
+    #         screen.blit(sprite.image,utilities.add_pos(sprite.rect.topleft,self.offset))
+
+    # modified for drawing rectangles instead of sprites
+    def draw_rect(self, screen, obj, color):
+    # Only draw if inside screen bounds
+        screen_rect = screen.get_rect()
+        # shift by camera offset
+        obj_rect = obj.rect.move(self.offset)  
+        if obj_rect.colliderect(screen_rect):
+            pygame.draw.rect(screen, color, obj_rect)
 
     # Olly Added 
     def get_level_size(self):

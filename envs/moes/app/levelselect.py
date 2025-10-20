@@ -14,7 +14,7 @@ from envs.moes.app import state
 class LevelSelect(state.State):
     def __init__(self,game):
         state.State.__init__(self,game)
-        self.mapimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"mapselect.png")
+        #self.mapimage = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"mapselect.png")
         #self.mapimage = utilities.loadImage(os.path.join("data","images"),"mapselect.png")
         self.points = [(622,622),(650,506),(738,379),(688,234),(520,365),(345,365),(333,250),(469,232),(496,102),(383,134),(246,109),(81,135)]
         self.current_sel = 0
@@ -23,6 +23,7 @@ class LevelSelect(state.State):
         #self.movesound = utilities.loadSound(os.path.join("data","sounds"),"selmove.wav")
         self.levellock = level.levellocks
 
+    # This not even called by rl
     def update(self):
         if pygame.mouse.get_pressed()[0]:
             pass
@@ -52,26 +53,27 @@ class LevelSelect(state.State):
                     self.game.platformer.levelparse(self.game.platformer.level2)
                 if self.current_sel == 2:
                     self.game.platformer.levelparse(self.game.platformer.level3)
-                if self.current_sel == 3:
-                    self.game.platformer.levelparse(self.game.platformer.level4)
-                if self.current_sel == 4:
-                    self.game.platformer.levelparse(self.game.platformer.level5)
-                if self.current_sel == 5:
-                    self.game.platformer.levelparse(self.game.platformer.level6)
-                if self.current_sel == 6:
-                    self.game.platformer.levelparse(self.game.platformer.level7)
-                if self.current_sel == 7:
-                    self.game.platformer.levelparse(self.game.platformer.level8)
-                if self.current_sel == 8:
-                    self.game.platformer.levelparse(self.game.platformer.level9)
-                if self.current_sel == 9:
-                    self.game.platformer.levelparse(self.game.platformer.level10)
-                if self.current_sel == 10:
-                    self.game.platformer.levelparse(self.game.platformer.level11)
-                if self.current_sel == 11:
-                    self.game.platformer.levelparse(self.game.platformer.level12)
+                # commented out enemies for these - 3 is enough for ai
+                # if self.current_sel == 3:
+                #     self.game.platformer.levelparse(self.game.platformer.level4)
+                # if self.current_sel == 4:
+                #     self.game.platformer.levelparse(self.game.platformer.level5)
+                # if self.current_sel == 5:
+                #     self.game.platformer.levelparse(self.game.platformer.level6)
+                # if self.current_sel == 6:
+                #     self.game.platformer.levelparse(self.game.platformer.level7)
+                # if self.current_sel == 7:
+                #     self.game.platformer.levelparse(self.game.platformer.level8)
+                # if self.current_sel == 8:
+                #     self.game.platformer.levelparse(self.game.platformer.level9)
+                # if self.current_sel == 9:
+                #     self.game.platformer.levelparse(self.game.platformer.level10)
+                # if self.current_sel == 10:
+                #     self.game.platformer.levelparse(self.game.platformer.level11)
+                # if self.current_sel == 11:
+                #     self.game.platformer.levelparse(self.game.platformer.level12)
 
-    def render(self):
+    def render(self,screen):
         self.game.screen.blit(pygame.transform.scale(self.mapimage,(self.game.screen_width,self.game.screen_height)),(0,0))
         pygame.draw.lines(self.game.screen, (25, 25, 25), False, self.points, 6)
         pygame.draw.lines(self.game.screen,(255,255,255),False,self.points,3)

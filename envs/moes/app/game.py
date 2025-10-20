@@ -20,40 +20,37 @@ class game():
     # Added drl mode for ai agent
     def __init__(self, drl_mode=False):
         self.drl_mode = drl_mode
-        #sets up pygame
-        os.environ["SDL_VIDEO_CENTERED"] = "1"
-        pygame.init()
-
-        pygame.display.set_caption(GAMETITLE)
         self.screen_width, self.screen_height = 800, 640
-        self.screen = pygame.display.set_mode((self.screen_width,self.screen_height),pygame.RESIZABLE|pygame.SCALED)
-        # Causing errors in agent training
-        #pygame.display.set_icon(utilities.loadImage(os.path.join("data", "images"), "icon.png"))
 
-        #load font
-        self.font_path = os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data", "fonts", "Cave-Story.ttf")
-        #self.font_path = os.path.join("data", "fonts", "Cave-Story.ttf")
-        self.large_font = pygame.font.Font(self.font_path, 75)
-        self.small_font = pygame.font.Font(self.font_path, 30)
-        self.tiny_font = pygame.font.Font(self.font_path, 15)
+        if self.drl_mode == False:
+            #sets up pygame
+            os.environ["SDL_VIDEO_CENTERED"] = "1"
+            pygame.init()
+
+            pygame.display.set_caption(GAMETITLE)
+        
+        
+            self.screen = pygame.display.set_mode((self.screen_width,self.screen_height),pygame.RESIZABLE|pygame.SCALED)
+            pygame.display.set_icon(utilities.loadImage(os.path.join("data", "images"), "icon.png"))
+
+            #load font
+            self.font_path = os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data", "fonts", "Cave-Story.ttf")
+            #self.font_path = os.path.join("data", "fonts", "Cave-Story.ttf")
+            self.large_font = pygame.font.Font(self.font_path, 75)
+            self.small_font = pygame.font.Font(self.font_path, 30)
+            self.tiny_font = pygame.font.Font(self.font_path, 15)
+
+            self.action_mapping = { "a":pygame.K_a,"b":pygame.K_s,"up":pygame.K_UP, "down":pygame.K_DOWN, "left":pygame.K_LEFT,"right":pygame.K_RIGHT,"start":pygame.K_RETURN,"select":pygame.K_RIGHTBRACKET}
+
+            #sets up clock and other time related
+            self.clock = pygame.time.Clock()
 
         #sets up current states
         self.curr_state = "game"
         self.prev_state = "game"
 
-        #sets up controls
-        # Showing compatibility for controller, don't worry about
-        pygame.joystick.init()
-        self.joystick = None
-        try:
-            self.joystick = pygame.joystick.Joystick(0)
-        except:
-            print("none")
         self.actions = {"a":False,"b":False,"up": False,"down":False,"left":False,"right":False,"start":False, "select":False}
-        self.action_mapping = { "a":pygame.K_a,"b":pygame.K_s,"up":pygame.K_UP, "down":pygame.K_DOWN, "left":pygame.K_LEFT,"right":pygame.K_RIGHT,"start":pygame.K_RETURN,"select":pygame.K_RIGHTBRACKET}
-
-        #sets up clock and other time related
-        self.clock = pygame.time.Clock()
+        
         self.delta_time = 0
         self.target_fps = 60
 
@@ -75,25 +72,33 @@ class game():
 
     # updates controls - called within update
     # change to allow passing in actions to pass in from drl
-    def update_actions(self, action = -1):
-        # gets keys pressed from pygame
-        keys = pygame.key.get_pressed()
-        #resets all keys to false
+    def update_actions(self):
+        # Resets keys to false to prep for next move
         for k in self.actions:
             self.actions[k] = False
-        # sets any key to true if its pressed
-        # iterating through like pygame.K_a, pygame.K_s, pygame.K_UP, etc
-        # finding the key and setting it to true for player movement
-        if action == -1:
-            for k in self.action_mapping.values():
-                # ie if keys[pygame.K_a]
-                if keys[k]:
-                    self.actions[utilities.get_key(self.action_mapping,k)] = True 
-        # DRL chosen action
-        # Setting 0 as standing still, 1 to be left key, 2 = go right, 3 down, 
-        # 4 jump
-        elif action == 0:
-            pass
+        
+        # gets keys pressed from pygame
+        keys = pygame.key.get_pressed()
+        for k in self.action_mapping.values():
+            # ie if keys[pygame.K_a]
+            if keys[k]:
+                self.actions[utilities.get_key(self.action_mapping,k)] = True
+        
+        self.pausecooldown -= 1
+        if keys[pygame.K_ESCAPE]:
+            self.running = False
+            pygame.quit()
+        
+    # DRL chosen action
+    # Setting 0 as standing still, 1 to be left key, 2 = go right, 3 down, 
+    # 4 jump
+    def update_actions_rl(self,action):
+        # Resets keys to false to prep for next move
+        for k in self.actions:
+            self.actions[k] = False
+
+        if action == 0:
+                pass
         elif action == 1:
             self.actions["left"] = True
         elif action == 2:
@@ -102,45 +107,34 @@ class game():
             self.actions["down"] = True
         else:
             self.actions["a"] = True
-
+        
         self.pausecooldown -= 1
-        if keys[pygame.K_ESCAPE]:
-            self.running = False
-            pygame.quit()
 
     def update(self, action = -1):
         #print(self.clock.get_fps())
-        self.delta_time = (self.clock.tick(self.target_fps) * .001 * self.target_fps)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-                pygame.quit()
-            if event.type == pygame.JOYBUTTONDOWN:
-                print(event)
-        # This causing the key press to happen
-        self.update_actions(action)
-        try:
-            if self.joystick.get_button(1):
-                self.actions["a"] = True
-            if self.joystick.get_button(9):
-                self.actions["start"] = True
-            if self.joystick.get_axis(1) > .5:
-                self.actions["right"] = True
-            if self.joystick.get_axis(1) < -.5:
-                self.actions["left"] = True
-            if self.joystick.get_axis(4) > .5:
-                self.actions["down"] = True
-            if self.joystick.get_axis(4) < -.5:
-                self.actions["up"] = True
-        except:
-            pass
+        # How game updates with clock causing drl issues
+        if self.drl_mode == False:
+            self.delta_time = (self.clock.tick(self.target_fps) * .001 * self.target_fps)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    pygame.quit()
+            self.update_actions()
+        else:
+            # time steps for drl
+            self.delta_time = 1 / self.target_fps
+            self.update_actions_rl(action)
+        
         # Will call ie update function in spashscreen class, update from gameover, etc
         self.curr_state.update()
 
-    def render(self):
-        self.screen.fill((0,0,0))
-        self.curr_state.render()
-        pygame.display.update()
+    # need to double check for drl later
+    def render(self, screen):
+        #self.screen.fill((0,0,0))
+        self.curr_state.render(screen)
+        # pygame.display.flip() called in moes_env
+        #pygame.display.update()
+    
     def gameloop(self):
         self.running = True
         # originally here, starts from intro screen to start, to menu select, to game
