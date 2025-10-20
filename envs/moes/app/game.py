@@ -90,15 +90,14 @@ class game():
             pygame.quit()
         
     # DRL chosen action
-    # Setting 0 as standing still, 1 to be left key, 2 = go right, 3 down, 
-    # 4 jump
+    # Setting 0 as go left, 1 as go right, a as jump
     def update_actions_rl(self,action):
         # Resets keys to false to prep for next move
         for k in self.actions:
             self.actions[k] = False
 
-        if action == 0:
-                pass
+        if action  == 0:
+            pass
         elif action == 1:
             self.actions["left"] = True
         elif action == 2:
@@ -110,20 +109,24 @@ class game():
         
         self.pausecooldown -= 1
 
-    def update(self, action = -1):
+    def update(self, action):
+
+        # time steps for drl
+        self.delta_time = 1 / self.target_fps
+        self.update_actions_rl(action)
         #print(self.clock.get_fps())
         # How game updates with clock causing drl issues
-        if self.drl_mode == False:
-            self.delta_time = (self.clock.tick(self.target_fps) * .001 * self.target_fps)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                    pygame.quit()
-            self.update_actions()
-        else:
-            # time steps for drl
-            self.delta_time = 1 / self.target_fps
-            self.update_actions_rl(action)
+        # if self.drl_mode == False:
+        #     self.delta_time = (self.clock.tick(self.target_fps) * .001 * self.target_fps)
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             self.running = False
+        #             pygame.quit()
+        #     self.update_actions()
+        # else:
+        #     # time steps for drl
+        #     self.delta_time = 1 / self.target_fps
+        #     self.update_actions_rl(action)
         
         # Will call ie update function in spashscreen class, update from gameover, etc
         self.curr_state.update()

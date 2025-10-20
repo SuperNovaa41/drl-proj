@@ -27,7 +27,7 @@ class MoesEnv(gym.Env):
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
         high = np.ones((12,), dtype=np.float32)
         self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
-        # 0 - do nothing, 1 go left, 2 go right, 3 down, 4 jump
+        # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         self.action_space = spaces.Discrete(5)
 
         self.game = game.game(drl_mode=True)
@@ -93,8 +93,8 @@ class MoesEnv(gym.Env):
 
         # truncated = technical limit, ie level time limit so agent doesn't play endlessly
         # Agent gets 2 minutes max to beat a level
-        # was 120 but changed to 1 for testing
-        if level_time >= 1:
+        # was 120 but changed to 0.5 for testing
+        if level_time >= 0.5:
             truncated = True
         # could potentially add truncation for agent walking into a wall/idle
 
@@ -122,7 +122,7 @@ class MoesEnv(gym.Env):
         info = {
             "coins_collected": self.game.platformer.get_coins(),
             # Will be win state if level complete
-            "is_level_complete": self.game.curr_state
+            #"is_level_complete": self.game.curr_state
         }
 
         # need to return: observation, reward, terminated, truncated, info = env.step(action)
