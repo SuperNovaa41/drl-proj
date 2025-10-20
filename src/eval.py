@@ -37,7 +37,7 @@ def run_episode_moes(model, reward_mode=None, render=False):
             env.render()
 
     coins_collected = int(info.get("coins_collected", 0))
-    level_completed = int(info.get("is_level_complete"), 0)
+    #level_completed = int(info.get("is_level_complete"), 0)
 
     env.close()
     return {
@@ -46,7 +46,7 @@ def run_episode_moes(model, reward_mode=None, render=False):
         "steps": steps,
         "crashed": int(done and not trunc),
         "truncated": int(trunc),
-        "is_level_complete": level_completed,
+        #"is_level_complete": level_completed,
     }
 
 def run_episode_mario(model, reward_mode="coins", render=False):
@@ -112,7 +112,7 @@ def do_moes_run(model, episodes, reward_mode, render):
     print(f"Crash rate: {crash_rate*100:.1f}%")
 
     # Per-episode CSV
-    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated","is_level_complete"]
+    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated"]
     return rows, fieldnames
 
 def do_mario_run(model, episodes, reward_mode, render):

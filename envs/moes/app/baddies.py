@@ -283,8 +283,8 @@ class Crab():
     #     screen.blit(self.image,self.rect)
 class Spike():
     def __init__(self,pos,collisiongroup,dir):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"spike.png",1)
+        #pygame.sprite.Sprite.__init__(self)
+        #self.image = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"spike.png",1)
         #self.image = utilities.loadImage(os.path.join("data","images"),"spike.png",1)
         self.rect = pygame.Rect(pos[0],pos[1],8,8)
         #self.rect = self.image.get_rect()
@@ -294,12 +294,12 @@ class Spike():
 
         self.dir = dir
 
-        if self.dir == 1:
-            self.image = pygame.transform.flip(self.image,True,True).convert_alpha()
-        if self.dir == 2:
-            self.image = pygame.transform.rotate(self.image,90).convert_alpha()
-        if self.dir == 3:
-            self.image = pygame.transform.rotate(self.image, -90).convert_alpha()
+        # if self.dir == 1:
+        #     self.image = pygame.transform.flip(self.image,True,True).convert_alpha()
+        # if self.dir == 2:
+        #     self.image = pygame.transform.rotate(self.image,90).convert_alpha()
+        # if self.dir == 3:
+        #     self.image = pygame.transform.rotate(self.image, -90).convert_alpha()
 
     def move(self,x,y,rfix = False):
         self.move_single_axis(round(x), 0)

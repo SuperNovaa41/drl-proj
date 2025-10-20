@@ -65,7 +65,7 @@ class MoesEnv(gym.Env):
             "coins_collected": self.game.platformer.get_coins(),
             # Will be win state if level complete
             # could change to levels completed and increment when it beats a level
-            "is_level_complete": self.game.curr_state
+            #"is_level_complete": self.game.curr_state
         }
 
         return obs, info
