@@ -12,8 +12,8 @@ class Gameover(state.State):
     def __init__(self,game):
         state.State.__init__(self,game)
         self.game = game
-        self.gameover_text = self.game.large_font.render("Game over",False,(255,255,255))
-        self.gameover_text_rect = self.gameover_text.get_rect(center=(self.game.screen_width / 2, self.game.screen_height / 3))
+        #self.gameover_text = self.game.large_font.render("Game over",False,(255,255,255))
+        #self.gameover_text_rect = self.gameover_text.get_rect(center=(self.game.screen_width / 2, self.game.screen_height / 3))
     def update(self):
         if self.game.actions["start"] and self.game.pausecooldown <= 0:
             self.game.pausecooldown = 20

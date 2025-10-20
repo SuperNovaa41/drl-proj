@@ -18,19 +18,19 @@ class Player():
         self.game = game
         self.frame = 0
 
-        self.idle_right = [self.images[0][0],self.images[0][1]]
-        self.walk_right = [self.images[0][2],self.images[0][3]]
-        self.right_jump = self.images[1][0]
-        self.falling_right = self.images[2][1]
-        self.land_right = self.images[1][1]
-        self.hit_right = self.images[2][2]
+        # self.idle_right = [self.images[0][0],self.images[0][1]]
+        # self.walk_right = [self.images[0][2],self.images[0][3]]
+        # self.right_jump = self.images[1][0]
+        # self.falling_right = self.images[2][1]
+        # self.land_right = self.images[1][1]
+        # self.hit_right = self.images[2][2]
 
-        self.idle_left = utilities.flipimages(self.idle_right)
-        self.walk_left = utilities.flipimages(self.walk_right)
-        self.left_jump = pygame.transform.flip(self.right_jump,True, False).convert_alpha()
-        self.falling_left = pygame.transform.flip(self.falling_right,True, False).convert_alpha()
-        self.land_left = pygame.transform.flip(self.land_right, True, False).convert_alpha()
-        self.hit_left = pygame.transform.flip(self.hit_right, True,False).convert_alpha()
+        # self.idle_left = utilities.flipimages(self.idle_right)
+        # self.walk_left = utilities.flipimages(self.walk_right)
+        # self.left_jump = pygame.transform.flip(self.right_jump,True, False).convert_alpha()
+        # self.falling_left = pygame.transform.flip(self.falling_right,True, False).convert_alpha()
+        # self.land_left = pygame.transform.flip(self.land_right, True, False).convert_alpha()
+        # self.hit_left = pygame.transform.flip(self.hit_right, True,False).convert_alpha()
 
         #self.image = self.idle_right[0]
         # Pygame rect object created
@@ -133,36 +133,36 @@ class Player():
         # if not self.game.game.actions["a"] and self.jumptimer < 20:
         #     self.jumptimer = 0
         if self.direction == 0:
-            if self.actstate["walking"]:
-                self.image = self.walk_right[int(self.frame/8%2)]
-            if self.actstate["idle"]:
-                self.image = self.idle_right[int(self.frame / 8 % 2)]
-            if self.actstate["falling"]:
-                self.image = self.falling_right
+            # if self.actstate["walking"]:
+            #     self.image = self.walk_right[int(self.frame/8%2)]
+            # if self.actstate["idle"]:
+            #     self.image = self.idle_right[int(self.frame / 8 % 2)]
+            # if self.actstate["falling"]:
+            #     self.image = self.falling_right
             if self.groundcount == 3 and self.grounded == False:
-                self.image = self.land_right
+                # self.image = self.land_right
                 self.grounded = True
-            if self.actstate["jumping"]:
-                self.image = self.right_jump
+            # if self.actstate["jumping"]:
+            #     self.image = self.right_jump
             if self.hitcooldown > 35:
-                self.image = self.hit_right
+                # self.image = self.hit_right
                 self.move(-1,-2)
                 self.jumptimer = 0
         if self.direction == 1:
-            if self.actstate["walking"]:
-                self.image = self.walk_left[int(self.frame/8%2)]
-            if self.actstate["idle"]:
-                self.image = self.idle_left[int(self.frame / 8 % 2)]
-            if self.actstate["falling"]:
-                self.image = self.falling_left
+            # if self.actstate["walking"]:
+            #     self.image = self.walk_left[int(self.frame/8%2)]
+            # if self.actstate["idle"]:
+            #     self.image = self.idle_left[int(self.frame / 8 % 2)]
+            # if self.actstate["falling"]:
+            #     self.image = self.falling_left
             if self.groundcount == 3  and self.grounded == False:
-                self.image = self.land_left
+                # self.image = self.land_left
                 self.grounded = True
-            if self.actstate["jumping"]:
-                self.image = self.left_jump
+            # if self.actstate["jumping"]:
+            #     self.image = self.left_jump
             if self.hitcooldown > 35:
                 self.jumptimer = 0
-                self.image = self.hit_left
+                # self.image = self.hit_left
                 self.move(1,-2)
         self.groundcount -= 1
         if self.grounded and self.hasjumped and not self.game.game.actions["a"]:
