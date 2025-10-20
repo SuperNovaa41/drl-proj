@@ -93,7 +93,8 @@ class MoesEnv(gym.Env):
 
         # truncated = technical limit, ie level time limit so agent doesn't play endlessly
         # Agent gets 2 minutes max to beat a level
-        if level_time >= 120:
+        # was 120 but changed to 1 for testing
+        if level_time >= 1:
             truncated = True
         # could potentially add truncation for agent walking into a wall/idle
 

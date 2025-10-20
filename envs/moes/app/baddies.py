@@ -281,12 +281,13 @@ class Crab():
 #         self.hitbox.center = self.rect.center
     # def render(self,screen):
     #     screen.blit(self.image,self.rect)
-class Spike(pygame.sprite.Sprite):
+class Spike():
     def __init__(self,pos,collisiongroup,dir):
         pygame.sprite.Sprite.__init__(self)
         self.image = utilities.loadImage(os.path.join(PROJECT_ROOT,"envs", "moes", "app", "data","images"),"spike.png",1)
         #self.image = utilities.loadImage(os.path.join("data","images"),"spike.png",1)
-        self.rect = self.image.get_rect()
+        self.rect = pygame.Rect(pos[0],pos[1],8,8)
+        #self.rect = self.image.get_rect()
         self.rect.topleft = pos
         self.collisiongroup = collisiongroup
         self.hitbox = self.rect.copy().inflate(-3, -3)
@@ -300,15 +301,20 @@ class Spike(pygame.sprite.Sprite):
         if self.dir == 3:
             self.image = pygame.transform.rotate(self.image, -90).convert_alpha()
 
-
     def move(self,x,y,rfix = False):
         self.move_single_axis(round(x), 0)
         self.move_single_axis(0,round(y))
 
-
     def move_single_axis(self,x,y):
         self.rect.move_ip(x,y)
-        hit = pygame.sprite.spritecollide(self, self.collisiongroup, False)
+        #hit = pygame.sprite.spritecollide(self, self.collisiongroup, False)
+
+        # drl version
+        hit = []
+        for block in self.collisiongroup:
+            if self.rect.colliderect(block.rect):
+                hit.append(block)
+        
         for block in hit:
             if not block == self:
                 if x > 0:
