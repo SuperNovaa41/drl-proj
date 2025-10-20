@@ -17,13 +17,13 @@ To begin training you will use the `src/trainer.py` file.
 There are a handful of arguments that can be used to alter the trainer.
 
 - `--env`: 
-    - Allows you to choose the environment you're training on, defaults to "mario".
+    - Allows you to choose the environment you're training on. Choices: "mario", "moes".
 - `--model-type`: 
     - Allows you to choose the ML model to train on, defaults to "DQN".
 - `--timesteps`: 
-    - Choose the amount of time steps to use during trianing, defaults to 200,000.
+    - Choose the amount of time steps to use during training, defaults to 200,000.
 - `--reward_mode`: 
-    - Allows you to choose the reward method for the model to use, defaults to "coins".
+    - Allows you to choose the reward method for the model to use.
 - `--seed`: 
     - Set the seed used by the ML model, defaults to 7.
 - `--logdir`: 
@@ -47,11 +47,11 @@ There are a handful of arguments that can be used to alter the evaluator.
 - `--model_path`:
     - Here is where you indicate the location of the model, this is a required argument.
 - `--env`: 
-    - Allows you to choose the environment you're evaluating, defaults to "mario".
+    - Allows you to choose the environment you're evaluating. Choices: "mario", "moes".
 - `--model-type`: 
     - Allows you to choose the ML model to evaluate, defaults to "DQN".
 - `--reward_mode`: 
-    - Allows you to choose the reward method for the model to use, defaults to "coins".
+    - Allows you to choose the reward method for the model to use.
 - `--episodes`:
     - How many episodes should be run of this model? Defaults to 10.
 - `--render`:
@@ -62,6 +62,8 @@ There are a handful of arguments that can be used to alter the evaluator.
 ## Environments
 
 ### Mario
+
+Nathan's env.
 
 The mario environment is derived from [this project](https://github.com/Tharun-bs/Super-Mario-Bros) on GitHub. It's had the assets stripped from it, both sound and graphics, to make it simpler to train on, and add less overhead. As well, it was restructured to fit inside of a Gymnasium environment.
 
