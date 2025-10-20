@@ -13,10 +13,13 @@ parent_dir = os.path.join(curr_dir, '..', 'envs')
 sys.path.append(parent_dir)
 
 from mario.env import GameEnv
+from moes.moes_env import MoesEnv
 
-def make_env(env, reward_mode):
+def make_env(env, reward_mode, seed):
     if (env == "mario"):
         e = GameEnv(reward_mode)
+    elif (env == "moes"):
+        e = MoesEnv(reward_mode=reward_mode, seed=seed)
     else:
         print(f"Environment ({env}) doesn't exist")
         exit(-1)
@@ -26,7 +29,7 @@ def make_env(env, reward_mode):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="mario")
+    parser.add_argument("--env", type=str, choices=["mario","moes"])
     parser.add_argument("--model_type", type=str, default="DQN")
     parser.add_argument("--timesteps", type=int, default=200_000)
     parser.add_argument("--reward_mode", type=str, default="coins", choices=["coins","enemies"])
@@ -39,7 +42,7 @@ def main():
     os.makedirs(args.logdir, exist_ok=True)
     os.makedirs(args.modeldir, exist_ok=True)
 
-    env = make_env(args.env, args.reward_mode)
+    env = make_env(args.env, args.reward_mode, args.seed)
     
     if args.model_type == "PPO":
         model = PPO(
