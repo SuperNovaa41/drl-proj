@@ -70,7 +70,7 @@ def main():
     model.learn(total_timesteps=args.timesteps, progress_bar=True)
     
 
-    save_name = f"{args.model_type}_game_{args.reward_mode}"
+    save_name = f"{args.model_type}_game_{args.reward_mode}_{args.env}"
     path = os.path.join(args.modeldir, save_name)
     model.save(path)
     print(f"Saved model to {path}")
