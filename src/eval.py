@@ -24,7 +24,7 @@ def run_episode_moes(model, reward_mode=None, render=False):
     done = trunc = False
 
     ep_reward = 0.0
-    setups = 0
+    steps = 0
     # Metric, I need to come up with some 
 
     while not (done or trunc):
@@ -32,6 +32,9 @@ def run_episode_moes(model, reward_mode=None, render=False):
         obs, r, done, trunc, info = env.step(action)
         ep_reward += r
         steps += 1
+
+        if render:
+            env.render()
 
     coins_collected = int(info.get("coins_collected", 0))
     level_completed = int(info.get("is_level_complete"), 0)
@@ -41,7 +44,7 @@ def run_episode_moes(model, reward_mode=None, render=False):
         "reward": float(ep_reward),
         "coins_collected": coins_collected,
         "steps": steps,
-        "crashed": int(done and not trunc)
+        "crashed": int(done and not trunc),
         "truncated": int(trunc),
         "is_level_complete": level_completed,
     }
@@ -93,7 +96,7 @@ def run_episode_mario(model, reward_mode="coins", render=False):
 
 def do_moes_run(model, episodes, reward_mode, render):
     rows = []
-    for ep in range(1, args.episodes + 1):
+    for ep in range(1, episodes + 1):
         metrics = run_episode_moes(model, reward_mode=reward_mode, render=bool(render))
         metrics["episode"] = ep
         rows.append(metrics)
@@ -169,7 +172,7 @@ def main():
 
     csv_path = args.csv_out
     if def_csv_out == args.csv_out:
-        csv_path = args.csv_out + args.env + "_" + args.reward_mode + "_" + args.model_type + ".csv"
+        csv_path = args.csv_out + args.env + "_" + str(args.reward_mode) + "_" + args.model_type + ".csv"
 
     os.makedirs(os.path.dirname(csv_path), exist_ok=True)
     if (args.model_type == "PPO"):
