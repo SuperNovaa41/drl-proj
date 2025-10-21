@@ -18,7 +18,7 @@ sys.path.append(parent_dir)
 from mario.env import GameEnv
 from moes.moes_env import MoesEnv
 
-def run_episode_moes(model, reward_mode=None, render=False):
+def run_episode_moes(model, reward_mode="win", render=False):
     env = MoesEnv(render_mode="human" if render else None, reward_mode=reward_mode)
     obs, info = env.reset()
     done = trunc = False
@@ -37,7 +37,7 @@ def run_episode_moes(model, reward_mode=None, render=False):
             env.render()
 
     coins_collected = int(info.get("coins_collected", 0))
-    #level_completed = int(info.get("is_level_complete"), 0)
+    levels_beat = int(info.get("levels_beat"), 0)
 
     env.close()
     return {
@@ -46,7 +46,7 @@ def run_episode_moes(model, reward_mode=None, render=False):
         "steps": steps,
         "crashed": int(done and not trunc),
         "truncated": int(trunc),
-        #"is_level_complete": level_completed,
+        "levels_beat": levels_beat,
     }
 
 def run_episode_mario(model, reward_mode="coins", render=False):
@@ -112,7 +112,7 @@ def do_moes_run(model, episodes, reward_mode, render):
     print(f"Crash rate: {crash_rate*100:.1f}%")
 
     # Per-episode CSV
-    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated"]
+    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated","levels_beat"]
     return rows, fieldnames
 
 def do_mario_run(model, episodes, reward_mode, render):

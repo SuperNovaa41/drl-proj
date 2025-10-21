@@ -168,10 +168,12 @@ rectangles for easier rendering. Certain levels and enemies were removed due to 
 
 |Action|Reward|
 |-|-|
-|Moving right|+0.1, to encourage moving towards the flag, to the right of the map|
-|Staying alive|+0.05, encourages surviving|
+|Moving right|+0.1, to encourage moving towards the flag, to the right of the map (win mode)|
+|Staying alive|+0.05, encourages surviving (all modes)|
 |Reaching flag|+1.1, large reward on a win to encourage hitting the flag|
 |Dieing|-1, large loss in reward to discourage dieing|
+|Getting coins|reward += 1 * amount of coins|
+|Living|reward += 100 (live mode)|
 
 #### Observation Space:
 
