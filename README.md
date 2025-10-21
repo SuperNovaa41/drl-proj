@@ -145,3 +145,76 @@ The environment consists of three levels, Xs represent a tile, Cs represent a co
 
 [![Mario environment]()](https://share.novaa.xyz/s/pSbhVVSDhKgGaMg)
 
+### Moe's Adventure
+
+Olly's Env.
+
+Source code obtained from here: https://cheezye.itch.io/moes-adventure on itch.io. Its a platformer with collectables, moving enemies, and a goal that must be hit to advance to the next level. Images/sprites were replaced with simple
+rectangles for easier rendering. Certain levels and enemies were removed due to the large scale of the game, for better training. Restructured for a gym environment.
+
+#### Maps:
+
+3 Levels: g = ground, b = ground you can go through, C = Crab enemies, c = coins, f = flag, S = spikes, h = health, the rest are various decoration blocks
+Level 1
+"                                                                                                                      ",
+  "                                                                                                                      ",
+  "                                                                                                                      ",
+  "              c                                   c c                                             gggggggggggggggggg  ",
+  "g            c c                                a     c                                           gggggggggggggggggg  ",
+  "g           c   c                             rgggg    c                                    f     gggggggggggggggggg  ",
+  "g          ggg ggg         c  c  c  c       rgggggg    c       gg   gg  gg  gg                    gggggggggggggggggg  ",
+  "g  P                 g  Ct     t         gggggggggg   t  T                            T           gggggggggggggggggg  ",
+  "gggggggggggg     ggggggggggggggggggggggggggggggggggggggggggggggSSSSSSSSSSSSSSSSggggggggggggggggggggggggggggggggggggggg",
+  "ggggggggggggSSSSSggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+
+Level 2
+"                                                                                                                      ",
+  "gg                                                 cccccc                                                           gg",
+  "gg             ggg                                gbbbbbbg                                                          gg",
+  "gg           bbgggbb                              c  c c  c                                                         gg",
+  "gg             ggg                              gbbbbbbbbbbg                                                       hgg",
+  "gg           bbgggbbbbbbbbbbggl                                                                                     gg",
+  "gg P           ggg          ggggl             gbbbbbbbbbbbbbbbg                       t       T     t  f         bbbgg",
+  "ggl    t      rggg c c Cc  pgggggggl  t  T                        t                   g   aC  g  aC g               gg",
+  "ggggggggggggggggggggggggggggggggggggggggggggggSSSSSSSSSSSSSSSSSggggggl      C     rggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+
+Level 3
+"                                                                                                                      ",
+  "g                                                                                            ggg                   ggg",
+  "g                          ggS c  Sgg                                                       gggg                   ggg",
+  "g                        bbggS  c Sggh                    cc        cc                     ggggg               f   ggg",
+  "g           c   c    c     ggS c  Sggg t                                                  gggggg                   ggg",
+  "g                       bbbggS  c Sggggggg         g Ct  g   gC T  g   g  t Cg           ggggggg             bbbbbbggg",
+  "g           g   g    g     ggS         gggbbbb     ggggggg   ggggggg   ggggggg          gggggggg                   ggg",
+  "gg  P   g  C  a C  a  C   gggS                p                                        ggggggggg         p    a a aggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSggggggggggggggSSSSSSgggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+
+#### Actions:
+
+|Action|In Game Movement|
+|-|-|
+|0|Stay still|
+|1|Move character left|
+|2|Move character right|
+|3|Go down through b blocks|
+|4|Jump|
+
+|Action|Reward|
+|-|-|
+|Moving right|+0.1, to encourage moving towards the flag, to the right of the map|
+|Staying alive|+0.05, encourages surviving|
+|Reaching flag|+1.1, large reward on a win to encourage hitting the flag|
+|Dieing|-1, large loss in reward to discourage dieing|
+
+#### Observation Space:
+
+* Observation = `[y_coord, x_coord, grounded, l_baddie_distance, r_baddie_distance, down_baddie_distance, up_baddie_distance, l_coin_distance, r_coin_distance, down_coin_distance, up_coin_distance, up_goal_distance]` (all normalized to \~\[0,1]).
+
+* Termination on death from enemies, on flag being reached/win
+* Truncation on time limit violation
