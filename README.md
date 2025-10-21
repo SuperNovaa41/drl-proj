@@ -8,6 +8,11 @@ Then run the following:
 pip install -r requirements.txt
 ```
 
+Or, create + activate a venv with:
+python3 -m venv .venv && source .venv/bin/activate
+pip install --upgrade pip
+Then run pip install -r requirements.txt
+
 ## How to use
 
 ### Training
@@ -181,3 +186,8 @@ rectangles for easier rendering. Certain levels and enemies were removed due to 
 
 * Termination on death from enemies, on flag being reached/win
 * Truncation on time limit violation
+
+#### Video:
+
+Moes environment rl demonstration within videos/
+FLASHING LIGHTS WARNING
