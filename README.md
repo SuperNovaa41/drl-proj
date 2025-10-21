@@ -155,45 +155,6 @@ rectangles for easier rendering. Certain levels and enemies were removed due to 
 #### Maps:
 
 3 Levels: g = ground, b = ground you can go through, C = Crab enemies, c = coins, f = flag, S = spikes, h = health, the rest are various decoration blocks
-Level 1
-"                                                                                                                      ",
-  "                                                                                                                      ",
-  "                                                                                                                      ",
-  "              c                                   c c                                             gggggggggggggggggg  ",
-  "g            c c                                a     c                                           gggggggggggggggggg  ",
-  "g           c   c                             rgggg    c                                    f     gggggggggggggggggg  ",
-  "g          ggg ggg         c  c  c  c       rgggggg    c       gg   gg  gg  gg                    gggggggggggggggggg  ",
-  "g  P                 g  Ct     t         gggggggggg   t  T                            T           gggggggggggggggggg  ",
-  "gggggggggggg     ggggggggggggggggggggggggggggggggggggggggggggggSSSSSSSSSSSSSSSSggggggggggggggggggggggggggggggggggggggg",
-  "ggggggggggggSSSSSggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
-  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
-
-Level 2
-"                                                                                                                      ",
-  "gg                                                 cccccc                                                           gg",
-  "gg             ggg                                gbbbbbbg                                                          gg",
-  "gg           bbgggbb                              c  c c  c                                                         gg",
-  "gg             ggg                              gbbbbbbbbbbg                                                       hgg",
-  "gg           bbgggbbbbbbbbbbggl                                                                                     gg",
-  "gg P           ggg          ggggl             gbbbbbbbbbbbbbbbg                       t       T     t  f         bbbgg",
-  "ggl    t      rggg c c Cc  pgggggggl  t  T                        t                   g   aC  g  aC g               gg",
-  "ggggggggggggggggggggggggggggggggggggggggggggggSSSSSSSSSSSSSSSSSggggggl      C     rggggggggggggggggggggggggggggggggggg",
-  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
-  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
-  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
-
-Level 3
-"                                                                                                                      ",
-  "g                                                                                            ggg                   ggg",
-  "g                          ggS c  Sgg                                                       gggg                   ggg",
-  "g                        bbggS  c Sggh                    cc        cc                     ggggg               f   ggg",
-  "g           c   c    c     ggS c  Sggg t                                                  gggggg                   ggg",
-  "g                       bbbggS  c Sggggggg         g Ct  g   gC T  g   g  t Cg           ggggggg             bbbbbbggg",
-  "g           g   g    g     ggS         gggbbbb     ggggggg   ggggggg   ggggggg          gggggggg                   ggg",
-  "gg  P   g  C  a C  a  C   gggS                p                                        ggggggggg         p    a a aggg",
-  "gggggggggggggggggggggggggggggggggggggggggggggggggggSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSggggggggggggggSSSSSSgggggggggggggggg",
-  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
-  "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
 
 #### Actions:
 
