@@ -25,6 +25,7 @@ class MoesEnv(gym.Env):
         self.reward_mode = reward_mode
         self.screen_width, self.screen_height = 800, 640
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
+        self.levels_beat = 0
         high = np.ones((12,), dtype=np.float32)
         self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
@@ -55,17 +56,28 @@ class MoesEnv(gym.Env):
         # Resets level at spawn with 0 coins and 3 lives
         self.game.platformer.set_coins(0)
         self.game.platformer.set_lives(3)
-        # This just starts level 1
-        self.game.platformer.enter()
-        self.game.platformer.levelparse(self.game.platformer.level1)
 
+        if self.levels_beat == 0:
+            # This just starts level 1
+            self.game.platformer.enter()
+            self.game.platformer.levelparse(self.game.platformer.level1)
+        elif self.levels_beat == 1:
+            self.game.platformer.enter()
+            self.game.platformer.levelparse(self.game.platformer.level2)
+        elif self.levels_beat == 2:
+            self.game.platformer.enter()
+            self.game.platformer.levelparse(self.game.platformer.level3)
+        else:
+            # Restart from level 1 after beating 3 levels
+            self.levels_beat = 0
+            self.game.platformer.enter()
+            self.game.platformer.levelparse(self.game.platformer.level1)
+        
         obs = self._get_observation()
 
         info = {
             "coins_collected": self.game.platformer.get_coins(),
-            # Will be win state if level complete
-            # could change to levels completed and increment when it beats a level
-            #"is_level_complete": self.game.curr_state
+            "levels_beat": self.levels_beat
         }
 
         return obs, info
@@ -96,48 +108,42 @@ class MoesEnv(gym.Env):
         # was 120 but changed to 0.5 for testing
         if level_time >= 0.5:
             truncated = True
-        # could potentially add truncation for agent walking into a wall/idle
 
         # handle rewards
         reward = 0.0
 
-        # Reward system for default reaching flag
+        # Reward system for default staying alive
         reward += 0.05
 
-        # Flag for most levels is at the right (at least first 3) - give reward for going right
-        # Not good to use this
-        if action == 2:
-            reward += 0.1
+        if self.reward_mode == "coins":
+            # Reward for collecting coins
+            reward += 1 * self.game.platformer.get_coins()
+        elif self.reward_mode == "win":
+            # Flag for most levels is at the right (at least first 3) - give reward for going right
+            if action == 2:
+                reward += 0.1
 
-        if terminated and self.game.curr_state == self.game.winscreen:
-            reward += 1.1
+            if terminated and self.game.curr_state == self.game.winscreen:
+                reward += 1.1
+
+        # strongly encourages living as long as possible
+        elif self.reward_mode == "live":
+            reward += 100
+        
         elif terminated and self.game.curr_state == self.game.deathscreen:
             reward -= 1.0
 
-        # could calculate x and y coords here, then pass in here, to use above for distance from flag
-        # for rewards
         obs = self._get_observation()
 
         # info
         info = {
             "coins_collected": self.game.platformer.get_coins(),
             # Will be win state if level complete
-            #"is_level_complete": self.game.curr_state
+            "levels_beat": self.levels_beat
         }
 
         # need to return: observation, reward, terminated, truncated, info = env.step(action)
         return obs, reward, terminated, truncated, info 
-
-    # Both these using render_rl - in source code
-    # def render(self):
-    #     if self.render_mode == "rgb_array":
-    #         self.game.render()
-    #         arr = pygame.surfarray.array3d(self.game.screen)
-    #         return np.transpose(arr, (1, 0, 2))
-    #     elif self.render_mode == "human":
-    #         self.game.render()
-    #     else:
-    #         return None
 
     def render(self):
         if self.render_mode == "rgb_array":
@@ -156,13 +162,11 @@ class MoesEnv(gym.Env):
             self._clock = None
 
     # Helpers
-    def _get_observation(self):
+    def _get_observation(self, ):
         # Move these later cuz need in reset function?
         level_size = self.game.platformer.camera.get_level_size()
         level_width = level_size[0]
         level_height = level_size[1]
-        level_width_tiles = level_width // 8
-        level_height_tiles =  level_height // 8
         x_coord = self.game.platformer.player.get_x_coord()
         y_coord = self.game.platformer.player.get_y_coord()
         # Converting to tiles
@@ -181,13 +185,6 @@ class MoesEnv(gym.Env):
         coin = {"c"}
         goal = {"f", "E"}
 
-        # Might add later 
-        # Distance to next jumping platform (x and y)
-        # floating platform could be above or below me, it has "" underneath it in level map
-        # distance to wall - after see agent working think about
-        
-        # Might change these distances to euclidean (x and y) so each would have 2 for left and right
-        # possibly even just 1 for each
         # Getting nearest enemy distances: Left, Right, Up, Down
         l_baddie_distance = self._get_distance_item_left(yt, xt, baddies, current_map, level_width)
         r_baddie_distance = self._get_distance_item_right(yt, xt, baddies, current_map, level_width)
@@ -200,10 +197,7 @@ class MoesEnv(gym.Env):
         down_coin_distance = self._get_distance_item_down(yt, xt, coin, current_map, level_height)
         up_coin_distance = self._get_distance_item_up(yt, xt, coin, current_map, level_height)
 
-        # Distance to goal - flag is above player
-        #l_goal_distance = self._get_distance_item_left(yt, xt, goal, current_map, level_width)
-        #r_goal_distance = self._get_distance_item_right(yt, xt, goal, current_map, level_width)
-        #down_goal_distance = self._get_distance_item_down(yt, xt, goal, current_map, level_height)
+        # Distance to goal - flag is above player - rewards should naturally encourage going right
         up_goal_distance = self._get_distance_item_up(yt, xt, goal, current_map, level_height)
 
         obs = np.array([
@@ -218,9 +212,6 @@ class MoesEnv(gym.Env):
             r_coin_distance / level_width,
             down_coin_distance / level_height,
             up_coin_distance / level_height,
-            # l_goal_distance / level_width,
-            # r_goal_distance / level_width,
-            # down_goal_distance / level_height,
             up_goal_distance / level_height
         ], dtype=np.float32)
         
@@ -307,23 +298,6 @@ class MoesEnv(gym.Env):
         arr = pygame.surfarray.array3d(self._screen)
         # transpose to HxWxC
         return np.transpose(arr, (1, 0, 2))
-    
-    # above functions call my game render function instead of this
-    # def _draw_scene(self):
-    #     pygame = self._pygame
-    #     self._screen.fill((30, 30, 36))
-    #     # Pipes
-    #     for p in self._pipes:
-    #         gap_top = int(p["gap_top"]) ; gap_bottom = gap_top + self.PIPE_GAP
-    #         # upper
-    #         pygame.draw.rect(self._screen, (80, 200, 120),
-    #                          pygame.Rect(p["x"], 0, self.PIPE_WIDTH, gap_top))
-    #         # lower
-    #         pygame.draw.rect(self._screen, (80, 200, 120),
-    #                          pygame.Rect(p["x"], gap_bottom, self.PIPE_WIDTH, self.HEIGHT-gap_bottom))
-    #     # Bird
-    #     pygame.draw.rect(self._screen, (230, 200, 40),
-    #                      pygame.Rect(self.BIRD_X, int(self.bird_y), self.BIRD_SIZE, self.BIRD_SIZE))
 
     
 
