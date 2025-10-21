@@ -9,9 +9,12 @@ pip install -r requirements.txt
 ```
 
 Or, create + activate a venv with:
+
+```
 python3 -m venv .venv && source .venv/bin/activate
 pip install --upgrade pip
-Then run pip install -r requirements.txt
+pip install -r requirements.txt
+```
 
 ## How to use
 
