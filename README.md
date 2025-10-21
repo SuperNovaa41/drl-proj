@@ -43,7 +43,7 @@ There are a handful of arguments that can be used to alter the trainer.
 
 `python src/trainer.py --env mario --timesteps 100000 --reward_mode enemies`, will train the agent using the mario environment, limited to ~100000 time steps, using the "enemies" rewarding mode.
 
-`python src/eval.py --model_type DQN --model_path models/DQN_game_coins --env mario --render 1`, will evaluate the agent using the mario environment, with the DQN ML model, with the coins reward mode, and rendered for you to see.
+`python src/eval.py --model_type DQN --model_path models/DQN_game_coins_mario --env mario --render 1`, will evaluate the agent using the mario environment, with the DQN ML model, with the coins reward mode, and rendered for you to see.
 
 
 ### Evaluating
