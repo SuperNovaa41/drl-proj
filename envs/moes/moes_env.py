@@ -47,6 +47,9 @@ class MoesEnv(gym.Env):
         self.coin = {"c"}
         self.goal = {"f", "E"}
 
+        # Very large number for reducing distance
+        self.dist_to_flag = 10000
+
         # Internal state - calls reset from the start
         self.reset(seed=seed)
 
@@ -138,9 +141,20 @@ class MoesEnv(gym.Env):
             # Reward for collecting coins
             reward += 1 * self.game.platformer.get_coins()
         elif self.reward_mode == "win":
-            # Flag for most levels is at the right (at least first 3) - give reward for going right
-            if action == 2:
-                reward += 0.1
+            if self.levels_beat == 0:
+                # Compounding reward that gets larger as we get closer to the flag
+                # (92,5) pixel location of flag for level 1
+                euclidean_flag_dist = math.dist((self.x, self.y), (92,5))
+            elif self.levels_beat == 1:
+                euclidean_flag_dist = math.dist((self.x, self.y), (103,6))
+            else:
+                euclidean_flag_dist = math.dist((self.x, self.y), (111,3))
+
+            if euclidean_flag_dist < self.dist_to_flag:
+                self.dist_to_flag = euclidean_flag_dist
+                # First, maybe distance is 500, 100 / 500 = 0.2, near flag
+                # 5 pixels away, 100 / 5 = 20, much greater reward 
+                reward += 100 / (self.dist_to_flag + 0.0001)
 
             if terminated and self.game.curr_state == self.game.winscreen:
                 reward += 1.1
