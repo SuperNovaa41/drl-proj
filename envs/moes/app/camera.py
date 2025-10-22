@@ -1,4 +1,4 @@
-import pygame.sprite
+#import pygame.sprite
 import os
 import sys
 
@@ -11,6 +11,7 @@ from envs.moes.app import utilities
 # Note: Level size in pixels as comparing screen size (pixels) to it directly
 class Camera():
     def __init__(self, target, screensize,levelsize,speed = 1):
+        # Offset + camera all for scrolling, can maybe comment out
         self.offset = (0, 0)
         self.realoffest = target.rect.center
         self.target = target

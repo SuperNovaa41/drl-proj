@@ -26,13 +26,27 @@ class MoesEnv(gym.Env):
         self.screen_width, self.screen_height = 800, 640
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
         self.levels_beat = 0
+        low = np.zeros((12,), dtype=np.float32)
         high = np.ones((12,), dtype=np.float32)
-        self.observation_space = spaces.Box(low=0.0, high=high, dtype=np.float32)
+        self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         self.action_space = spaces.Discrete(5)
 
         self.game = game.game(drl_mode=True)
-        
+
+        self.level_size = None
+
+        # Coord and respective tile value placeholders
+        self.x = None
+        self.y = None
+        self.xt = None
+        self.yt = None
+
+        # Enemies, coins, goal repped by these symbols
+        self.baddies = {"C", "D", "B", "M", "W", "Q", "J", "8", "S"}
+        self.coin = {"c"}
+        self.goal = {"f", "E"}
+
         # Internal state - calls reset from the start
         self.reset(seed=seed)
 
@@ -49,10 +63,6 @@ class MoesEnv(gym.Env):
             self._rnd.seed(seed)
             self._np_rng = np.random.default_rng(seed)
 
-        # For now, assume level 1 but later
-        # Have an if statement with reason for termination
-        # to advance level if termination
-
         # Resets level at spawn with 0 coins and 3 lives
         self.game.platformer.set_coins(0)
         self.game.platformer.set_lives(3)
@@ -61,17 +71,26 @@ class MoesEnv(gym.Env):
             # This just starts level 1
             self.game.platformer.enter()
             self.game.platformer.levelparse(self.game.platformer.level1)
+            self._set_coords()
+            # can access width by doing self.level_size[0] 
+            self._set_level_size(self.game.platformer.level1)
         elif self.levels_beat == 1:
             self.game.platformer.enter()
             self.game.platformer.levelparse(self.game.platformer.level2)
+            self._set_coords()
+            self._set_level_size(self.game.platformer.level2)
         elif self.levels_beat == 2:
             self.game.platformer.enter()
             self.game.platformer.levelparse(self.game.platformer.level3)
+            self._set_coords()
+            self._set_level_size(self.game.platformer.level3)
         else:
             # Restart from level 1 after beating 3 levels
             self.levels_beat = 0
             self.game.platformer.enter()
             self.game.platformer.levelparse(self.game.platformer.level1)
+            self._set_coords()
+            self._set_level_size(self.game.platformer.level1)
         
         obs = self._get_observation()
 
@@ -162,14 +181,28 @@ class MoesEnv(gym.Env):
             self._clock = None
 
     # Helpers
+
+    # Used to set coords for each level
+    def _set_coords(self):
+        self.x = self.game.platformer.player.get_x_coord()
+        self.y = self.game.platformer.player.get_y_coord()
+        self.xt = self.x // 8
+        self.yt = self.y // 8
+
+    # Sets size for current level in pixels
+    def _set_level_size(self, level):
+        level_width = level["map"][0] * 8
+        level_height = level["map"] * 8
+        self.level_size = [level_width, level_height]
+
     def _get_observation(self, ):
         # Move these later cuz need in reset function?
         level_size = self.game.platformer.camera.get_level_size()
         level_width = level_size[0]
         level_height = level_size[1]
+        # Moved coords to init/reset
         x_coord = self.game.platformer.player.get_x_coord()
         y_coord = self.game.platformer.player.get_y_coord()
-        # Converting to tiles
         xt = x_coord // 8
         yt = y_coord // 8
         grounded = self.game.platformer.player.get_grounded()
@@ -284,7 +317,6 @@ class MoesEnv(gym.Env):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.close()
-        #self._draw_scene()
         self.game.render(self._screen)
         pygame.display.flip()
         self._clock.tick(self.metadata["render_fps"])
