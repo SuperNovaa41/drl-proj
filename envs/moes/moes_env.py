@@ -32,8 +32,7 @@ class MoesEnv(gym.Env):
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         self.action_space = spaces.Discrete(5)
         self.steps = 0
-        # For testing
-        self.max_steps = 500
+        self.max_steps = 30
 
         self.game = game.game(drl_mode=True)
 
@@ -47,6 +46,7 @@ class MoesEnv(gym.Env):
         self.y = None
         self.xt = None
         self.yt = None
+        # Flag locations for first 3 levels
         self.level1_flag = (92,5)
         self.level2_flag = (103,6)
         self.level3_flag = (111,3)
@@ -59,7 +59,14 @@ class MoesEnv(gym.Env):
         # Very large number for reducing distance
         self.dist_to_flag = 10000
         self.baddie_near = False
+        self.coin_near = False
         self.grounded = None
+
+        # for tracking action stats
+        self.steps_left = 0
+        self.steps_right = 0
+        self.descents_taken = 0
+        self.jumps_taken = 0
 
         # Internal state - calls reset from the start
         self.reset(seed=seed)
@@ -118,7 +125,11 @@ class MoesEnv(gym.Env):
 
         info = {
             "coins_collected": self.game.platformer.get_coins(),
-            "levels_beat": self.levels_beat
+            "levels_beat": self.levels_beat,
+            "steps_left": self.steps_left,
+            "steps_right": self.steps_right,
+            "steps_down": self.descents_taken,
+            "jumps": self.jumps_taken
         }
 
         return obs, info
@@ -126,6 +137,18 @@ class MoesEnv(gym.Env):
     # one decision point, ie movement 1 to the right, or one jump
     # many of these per episode
     def step(self, action: int):
+        # Proof agent is taking actions
+        print(f"Action: {action}")
+        # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
+        if action == 1:
+            self.steps_left += 1
+        elif action == 2:
+            self.steps_right += 1
+        elif action == 3:
+            self.descents_taken += 1
+        elif action == 4:
+            self.jumps_taken += 1
+
         self.steps += 1
         terminated = False
         truncated = False
@@ -145,31 +168,23 @@ class MoesEnv(gym.Env):
         else:
             terminated = False
 
-        # Change to steps?
-        level_time = self.game.platformer.hud.get_time()
-
-        # truncated = technical limit, ie level time limit so agent doesn't play endlessly
-        # Agent gets 2 minutes max to beat a level
-        # was 120 but changed to 0.5 (5 seconds) for testing
-        # if level_time >= 0.5:
-        #     truncated = True
-
-        # print(f"self.steps: {self.steps}")
-        # print(f"self.max_steps: {self.max_steps}")
-        # print(f"truncated: {truncated}")
-
         if self.steps >= self.max_steps:
             truncated = True
 
-        # handle rewards
         reward = 0.0
 
         # Reward system for default staying alive
-        reward += 0.05
+        # Want much smaller then movement towards flag 
+        reward += 0.001
 
+        prev_coins = self.game.platformer.get_coins()
+
+        # Encourages being near coins, huge reward when coins collected
         if self.reward_mode == "coins":
-            # Reward for collecting coins
-            reward += 1 * self.game.platformer.get_coins()
+            if self.coin_near:
+                reward += 0.1
+            if self.game.platformer.get_coins > prev_coins:
+                reward += 100
         elif self.reward_mode == "win":
             if self.levels_beat == 0:
                 # Compounding reward that gets larger as we get closer to the flag
@@ -184,28 +199,29 @@ class MoesEnv(gym.Env):
                 # First, maybe distance is 500, 10 / 500 = 0.02, near flag
                 # 5 pixels away, 10 / 5 = 2, much greater reward 
                 reward += 10 / (self.dist_to_flag + 0.0001)
-        
-        # Large reward for reaching the goal
-        if terminated and self.game.curr_state == self.game.winscreen:
-            reward += 100
-        # strongly encourages living as long as possible
-        # elif self.reward_mode == "live":
-        #     reward += 100
-        
-        elif terminated and self.game.curr_state == self.game.deathscreen:
-            reward -= 10
 
         # Reward jumping when near enemy
         if self.baddie_near and self.grounded == False:
             reward += 2
+        
+        # Large reward for reaching the goal
+        if terminated and self.game.curr_state == self.game.winscreen:
+            reward += 100
+        
+        # Reward to discourage death
+        elif terminated and self.game.curr_state == self.game.deathscreen:
+            reward -= 10
 
         obs = self._get_observation()
 
         # info - will add more metrics
         info = {
             "coins_collected": self.game.platformer.get_coins(),
-            # Will be win state if level complete
-            "levels_beat": self.levels_beat
+            "levels_beat": self.levels_beat,
+            "steps_left": self.steps_left,
+            "steps_right": self.steps_right,
+            "steps_down": self.descents_taken,
+            "jumps": self.jumps_taken
         }
 
         return obs, reward, terminated, truncated, info 
@@ -218,14 +234,16 @@ class MoesEnv(gym.Env):
         else:
             return None
 
-    # def close(self):
-    #     # if self._pygame:
-    #     #     import pygame
-    #     #     pygame.quit()
-    #     #     self._pygame = None
-    #     #     self._screen = None
-    #     #     self._clock = None
-    #     pygame.quit()
+    def close(self):
+        # if self._pygame:
+        #     import pygame
+        #     pygame.quit()
+        #     self._pygame = None
+        #     self._screen = None
+        #     self._clock = None
+        pygame.quit()
+        self._screen = None
+        self._clock = None
 
     # Helpers
 
@@ -271,6 +289,11 @@ class MoesEnv(gym.Env):
         r_coin_distance = self._get_distance_item_right(self.coin)
         l_coin_distance = self._get_distance_item_left(self.coin)
 
+        if r_coin_distance != 0 or l_coin_distance != 0:
+            self.coin_near = True
+        else:
+            self.coin_near = False
+
         # Getting nearest coin distances
         # l_coin_distance = self._get_distance_item_left(yt, xt, coin, current_map, level_width)
         # r_coin_distance = self._get_distance_item_right(yt, xt, coin, current_map, level_width)
@@ -286,6 +309,7 @@ class MoesEnv(gym.Env):
             self.grounded,
             # Normalize by euclidean distance of whole level
             self.dist_to_flag / math.dist((0,0), (level_width, level_height)),
+            # only relevant to know nearby enemies beside player?
             r_baddie_distance / level_width,
             l_baddie_distance / level_width,
             r_coin_distance / level_width,

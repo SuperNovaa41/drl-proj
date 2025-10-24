@@ -38,6 +38,10 @@ def run_episode_moes(model, reward_mode="win", render=False):
 
     coins_collected = int(info.get("coins_collected", 0))
     levels_beat = int(info.get("levels_beat", 0))
+    steps_left = int(info.get("steps_left", 0))
+    steps_right = int(info.get("steps_right", 0))
+    steps_down = int(info.get("steps_down", 0))
+    jumps = int(info.get("jumps", 0))
 
     env.close()
     return {
@@ -47,6 +51,10 @@ def run_episode_moes(model, reward_mode="win", render=False):
         "crashed": int(done and not trunc),
         "truncated": int(trunc),
         "levels_beat": levels_beat,
+        "steps_left": steps_left,
+        "steps_right": steps_right,
+        "steps_down": steps_down,
+        "jumps": jumps
     }
 
 def run_episode_mario(model, reward_mode="coins", render=False):

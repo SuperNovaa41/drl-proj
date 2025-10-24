@@ -176,24 +176,21 @@ rectangles for easier rendering. Certain levels and enemies were removed due to 
 
 |Action|Reward|
 |-|-|
-|Moving right|+0.1, to encourage moving towards the flag, to the right of the map (win mode)|
-|Staying alive|+0.05, encourages surviving (all modes)|
-|Reaching flag|+1.1, large reward on a win to encourage hitting the flag|
-|Dieing|-1, large loss in reward to discourage dieing|
-|Getting coins|reward += 1 * amount of coins|
-|Living|reward += 100 (live mode)|
+|Decreasing euclidean distance towards flag| 10 / (self.dist_to_flag + 0.0001) (win mode)|
+|Staying alive|+0.001, encourages surviving (all modes)|
+|Reaching flag|+100, large reward on a win to encourage hitting the flag|
+|Dieing|-10, large loss in reward to discourage dieing|
+|Jumping when near enemies|+2|
+|Being near a coin|+0.1 (coin mode)|
+|Collecting a coin|+100 (coin mode)|
 
 #### Observation Space:
 
-* Observation = `[y_coord, x_coord, grounded, l_baddie_distance, r_baddie_distance, down_baddie_distance, up_baddie_distance, l_coin_distance, r_coin_distance, down_coin_distance, up_coin_distance, up_goal_distance]` (all normalized to \~\[0,1]).
+* Observation = `[self.x, self.y, self.grounded, self.dist_to_flag, r_baddie_distance, r_baddie_distance, r_coin_distance, r_coin_distance]` (all normalized to \~\[0,1]).
 
 * Termination on death from enemies, on flag being reached/win
-* Truncation on time limit violation
+* Truncation on step violation
 
 #### Video:
 
-Moes environment rl demonstration within videos/
-FLASHING LIGHTS WARNING
-
-
-[Link to video](https://share.novaa.xyz/s/mp4CnJLuRNdohhA)
+Moes environment rl demonstration within videos
