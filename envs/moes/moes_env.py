@@ -33,7 +33,7 @@ class MoesEnv(gym.Env):
         self.action_space = spaces.Discrete(5)
         self.steps = 0
         # For testing
-        self.max_steps = 10
+        self.max_steps = 500
 
         self.game = game.game(drl_mode=True)
 
@@ -154,6 +154,10 @@ class MoesEnv(gym.Env):
         # if level_time >= 0.5:
         #     truncated = True
 
+        # print(f"self.steps: {self.steps}")
+        # print(f"self.max_steps: {self.max_steps}")
+        # print(f"truncated: {truncated}")
+
         if self.steps >= self.max_steps:
             truncated = True
 
@@ -214,14 +218,14 @@ class MoesEnv(gym.Env):
         else:
             return None
 
-    def close(self):
-        # if self._pygame:
-        #     import pygame
-        #     pygame.quit()
-        #     self._pygame = None
-        #     self._screen = None
-        #     self._clock = None
-        pygame.quit()
+    # def close(self):
+    #     # if self._pygame:
+    #     #     import pygame
+    #     #     pygame.quit()
+    #     #     self._pygame = None
+    #     #     self._screen = None
+    #     #     self._clock = None
+    #     pygame.quit()
 
     # Helpers
 

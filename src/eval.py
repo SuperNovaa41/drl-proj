@@ -37,7 +37,7 @@ def run_episode_moes(model, reward_mode="win", render=False):
             env.render()
 
     coins_collected = int(info.get("coins_collected", 0))
-    levels_beat = int(info.get("levels_beat"), 0)
+    levels_beat = int(info.get("levels_beat", 0))
 
     env.close()
     return {

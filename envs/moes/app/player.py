@@ -42,7 +42,8 @@ class Player():
         # for rl
         self.collisiongroup = []
         self.direction = 0
-        self.actstate = {"walking":False,"idle":False,"jumping":False,"falling":False, "hit":False}
+        # player starts falling from air
+        self.actstate = {"walking":False,"idle":False,"jumping":False,"falling":True, "hit":False}
         self.currstate = "idle"
         self.jumptimer = 0
         # related to gravity from jumps/falls
