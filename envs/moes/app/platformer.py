@@ -9,7 +9,7 @@ sys.path.append(PROJECT_ROOT)
 
 from envs.moes.app import game
 from envs.moes.app import baddies
-from envs.moes.app import camera
+#from envs.moes.app import camera
 from envs.moes.app import hud
 from envs.moes.app import state
 from envs.moes.app import player
@@ -80,7 +80,7 @@ class Platformer(state.State):
 
         # call in render for human visualisation?
         #self.camera = camera.Camera(self.player,(self.tempsurf.get_width(),self.tempsurf.get_height()),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
-        self.camera = camera.Camera(self.player,(self.game.screen_width,self.game.screen_height),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
+        #self.camera = camera.Camera(self.player,(self.game.screen_width,self.game.screen_height),(len(self.level1["map"][0] * 8),len(self.level1["map"] * 8)))
 
         self.coins = 0
         self.lives = 3
@@ -148,7 +148,7 @@ class Platformer(state.State):
         if self.game.drl_mode == False:
             self.collidables.update()
         # handle this elsewhere
-        self.camera.update()
+        #self.camera.update()
         self.hud.update()
         if self.health <= 0:
             self.die()
@@ -179,8 +179,8 @@ class Platformer(state.State):
         # need to handle camera
 
     # Regular gameplay rendering vs rl
-    def render(self,screen):
-        self.render_rl(screen)
+    # def render(self,screen):
+    #     self.render_rl(screen)
 
         # if self.game.drl_mode == False:
         #     print(self.backgroundimage)
@@ -202,20 +202,28 @@ class Platformer(state.State):
     def render(self,screen):
         #self.tempsurf.blit(self.backgroundimage,(0,0))
         screen.fill((173, 216, 230))
+
+        # draw blocks - gray
         for i in self.decor:
-            # decor will be grey
-            self.camera.draw_rect(screen, i, (100, 100, 100))
+            pygame.draw.rect(screen, (100, 100, 100), i.rect)
+
+        # for i in self.decor:
+        #     # decor will be grey
+        #     self.camera.draw_rect(screen, i, (100, 100, 100))
             #self.camera.draw_sprite(screen,i)
 
         # Crabs and spikes red, coins and hearts yellow, everything else brown
         for i in self.collidables:
             if isinstance(i,baddies.Crab) or isinstance(i,baddies.Spike):
-                self.camera.draw_rect(screen, i, (255, 0, 0))
+                pygame.draw.rect(screen, (255,0,0), i.rect)
+                #self.camera.draw_rect(screen, i, (255, 0, 0))
             # coins and hearts are yellow
             elif isinstance(i, blocks.collectable):
-                self.camera.draw_rect(screen, i, (255, 215, 0))
+                #self.camera.draw_rect(screen, i, (255, 215, 0))
+                pygame.draw.rect(screen, (255,215,0), i.rect)
             else:
-                self.camera.draw_rect(screen, i, (181, 101, 29))
+                pygame.draw.rect(screen, (181,101,29), i.rect)
+                #self.camera.draw_rect(screen, i, (181, 101, 29))
             # self.camera.draw_sprite(screen,i)
             #it = i.rect.copy()
             #it.topleft = utilities.add_pos(i.rect.topleft,self.camera.offset)
@@ -223,7 +231,8 @@ class Platformer(state.State):
 
         #self.camera.draw_sprite(screen, self.player)
         # Player is green
-        self.camera.draw_rect(screen, self.player, (0, 255, 0))
+        pygame.draw.rect(screen, self.player, (0,255,0))
+        #self.camera.draw_rect(screen, self.player, (0, 255, 0))
         #self.hud.render(self.tempsurf)
         #self.game.screen.blit(pygame.transform.scale(screen,(800,640)),(0,0))
 
@@ -290,7 +299,7 @@ class Platformer(state.State):
 
         # self.camera = camera.Camera(self.player, (self.tempsurf.get_width(), self.tempsurf.get_height()),
         #                             (len(level["map"][0] * 8), len(level["map"] * 8)))
-        self.camera = camera.Camera(self.player,(self.game.screen_width,self.game.screen_height),(len(level["map"][0] * 8), len(level["map"] * 8)))
+        #self.camera = camera.Camera(self.player,(self.game.screen_width,self.game.screen_height),(len(level["map"][0] * 8), len(level["map"] * 8)))
         
         x = 0
         y = 0

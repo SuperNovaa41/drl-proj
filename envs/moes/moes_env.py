@@ -4,7 +4,7 @@ from gymnasium import spaces
 
 import numpy as np
 import random
-#import pygame
+import pygame
 import math
 import os, sys
 
@@ -17,7 +17,7 @@ from envs.moes.app import game
 class MoesEnv(gym.Env):
 
     # add reward mode later
-    def __init__(self, render_mode = None, seed=None, reward_mode = None):
+    def __init__(self, render_mode = None, seed=None, reward_mode = "win"):
         super().__init__()
         self.render_mode = render_mode
         self._rnd = random.Random(seed)
@@ -26,8 +26,8 @@ class MoesEnv(gym.Env):
         self.screen_width, self.screen_height = 800, 640
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
         self.levels_beat = 0
-        low = np.zeros((12,), dtype=np.float32)
-        high = np.ones((12,), dtype=np.float32)
+        low = np.zeros((8,), dtype=np.float32)
+        high = np.ones((8,), dtype=np.float32)
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         self.action_space = spaces.Discrete(5)
@@ -62,7 +62,7 @@ class MoesEnv(gym.Env):
         self.reset(seed=seed)
 
         # Lazy pygame init
-        self._pygame = None
+        #self._pygame = None
         self._screen = None
         self._clock = None
 
@@ -236,8 +236,6 @@ class MoesEnv(gym.Env):
         level_width = self.level_size[0]
         level_height = self.level_size[1]
 
-        grounded = self.game.platformer.player.get_grounded()
-
         # Holds an int from 1-12 representing level number
         # self.current_level = self.game.platformer.get_current_level()
         # # will have ie current_level = 1, correct for 0 index, so have all_levels[0] which is level1
@@ -273,7 +271,7 @@ class MoesEnv(gym.Env):
         obs = np.array([
             self.x / level_width,
             self.y / level_height,
-            grounded,
+            self.grounded,
             # Normalize by euclidean distance of whole level
             self.dist_to_flag / math.dist((0,0), (level_width, level_height)),
             r_baddie_distance / level_width,
@@ -368,29 +366,33 @@ class MoesEnv(gym.Env):
     
     # Modifying these to render properly for drl
     # --------- Rendering helpers ---------
-    def _lazy_pygame(self):
-        import pygame
-        self._pygame = pygame
-        self._pygame.init()
-        self._screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self._clock = pygame.time.Clock()
+    # def _lazy_pygame(self):
+    #     import pygame
+    #     self._pygame = pygame
+    #     self._pygame.init()
+    #     self._screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+    #     self._clock = pygame.time.Clock()
 
+    # Main rendering starting from call here
     def _render_human(self):
-        self._lazy_pygame()
-        pygame = self._pygame
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.close()
+        if self._screen is None:
+            pygame.init()
+            self._screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        #self._lazy_pygame()
+        #pygame = self._pygame
+        # for event in pygame.event.get():
+        #     if event.type == pygame.QUIT:
+        #         self.close()
         self.game.render(self._screen)
         pygame.display.flip()
         self._clock.tick(self.metadata["render_fps"])
 
+    # Don't really need
     def _render_rgb(self):
-        self._lazy_pygame()
-        #change to render
-        #self._draw_scene()
+        if self._screen is None:
+            pygame.init()
+            self._screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.game.render(self._screen)
-        import pygame
         arr = pygame.surfarray.array3d(self._screen)
         # transpose to HxWxC
         return np.transpose(arr, (1, 0, 2))
