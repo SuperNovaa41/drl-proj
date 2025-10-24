@@ -34,6 +34,9 @@ class MoesEnv(gym.Env):
 
         self.game = game.game(drl_mode=True)
 
+        # Start at level 1
+        self.current_level = 1
+        self.current_map = None
         self.level_size = None
 
         # Coord and respective tile value placeholders
@@ -41,6 +44,9 @@ class MoesEnv(gym.Env):
         self.y = None
         self.xt = None
         self.yt = None
+        self.level1_flag = (92,5)
+        self.level2_flag = (103,6)
+        self.level3_flag = (111,3)
 
         # Enemies, coins, goal repped by these symbols
         self.baddies = {"C", "D", "B", "M", "W", "Q", "J", "8", "S"}
@@ -49,6 +55,8 @@ class MoesEnv(gym.Env):
 
         # Very large number for reducing distance
         self.dist_to_flag = 10000
+        self.baddie_near = False
+        self.grounded = None
 
         # Internal state - calls reset from the start
         self.reset(seed=seed)
@@ -69,6 +77,14 @@ class MoesEnv(gym.Env):
         # Resets level at spawn with 0 coins and 3 lives
         self.game.platformer.set_coins(0)
         self.game.platformer.set_lives(3)
+
+        # Holds an int from 1-12 representing level number
+        self.current_level = self.game.platformer.get_current_level()
+        # will have ie current_level = 1, correct for 0 index, so have all_levels[0] which is level1
+        # get level1["map"]
+        self.current_map = level.all_levels[self.current_level-1]["map"]
+        self.grounded = self.game.platformer.player.get_grounded()
+        #self.current_map = None
 
         if self.levels_beat == 0:
             # This just starts level 1
@@ -111,6 +127,8 @@ class MoesEnv(gym.Env):
         truncated = False
         # Handles actions + updates environment
         self.game.update(action)
+        self._set_coords()
+        self.grounded = self.game.platformer.player.get_grounded()
 
         # terminated = beat level (hit flag) or died (lost all hearts)
         # through transition to win or death state
@@ -123,6 +141,7 @@ class MoesEnv(gym.Env):
         else:
             terminated = False
 
+        # Change to steps?
         level_time = self.game.platformer.hud.get_time()
 
         # truncated = technical limit, ie level time limit so agent doesn't play endlessly
@@ -143,39 +162,41 @@ class MoesEnv(gym.Env):
         elif self.reward_mode == "win":
             if self.levels_beat == 0:
                 # Compounding reward that gets larger as we get closer to the flag
-                # (92,5) pixel location of flag for level 1
-                euclidean_flag_dist = math.dist((self.x, self.y), (92,5))
+                euclidean_flag_dist = math.dist((self.x, self.y), self.level1_flag)
             elif self.levels_beat == 1:
-                euclidean_flag_dist = math.dist((self.x, self.y), (103,6))
+                euclidean_flag_dist = math.dist((self.x, self.y), self.level2_flag)
             else:
-                euclidean_flag_dist = math.dist((self.x, self.y), (111,3))
+                euclidean_flag_dist = math.dist((self.x, self.y), self.level3_flag)
 
             if euclidean_flag_dist < self.dist_to_flag:
                 self.dist_to_flag = euclidean_flag_dist
-                # First, maybe distance is 500, 100 / 500 = 0.2, near flag
-                # 5 pixels away, 100 / 5 = 20, much greater reward 
-                reward += 100 / (self.dist_to_flag + 0.0001)
-
-            if terminated and self.game.curr_state == self.game.winscreen:
-                reward += 1.1
-
-        # strongly encourages living as long as possible
-        elif self.reward_mode == "live":
+                # First, maybe distance is 500, 10 / 500 = 0.02, near flag
+                # 5 pixels away, 10 / 5 = 2, much greater reward 
+                reward += 10 / (self.dist_to_flag + 0.0001)
+        
+        # Large reward for reaching the goal
+        if terminated and self.game.curr_state == self.game.winscreen:
             reward += 100
+        # strongly encourages living as long as possible
+        # elif self.reward_mode == "live":
+        #     reward += 100
         
         elif terminated and self.game.curr_state == self.game.deathscreen:
-            reward -= 1.0
+            reward -= 10
+
+        # Reward jumping when near enemy
+        if self.baddie_near and self.grounded == False:
+            reward += 2
 
         obs = self._get_observation()
 
-        # info
+        # info - will add more metrics
         info = {
             "coins_collected": self.game.platformer.get_coins(),
             # Will be win state if level complete
             "levels_beat": self.levels_beat
         }
 
-        # need to return: observation, reward, terminated, truncated, info = env.step(action)
         return obs, reward, terminated, truncated, info 
 
     def render(self):
@@ -209,88 +230,117 @@ class MoesEnv(gym.Env):
         level_height = level["map"] * 8
         self.level_size = [level_width, level_height]
 
-    def _get_observation(self, ):
+    def _get_observation(self):
         # Move these later cuz need in reset function?
-        level_size = self.game.platformer.camera.get_level_size()
-        level_width = level_size[0]
-        level_height = level_size[1]
-        # Moved coords to init/reset
-        x_coord = self.game.platformer.player.get_x_coord()
-        y_coord = self.game.platformer.player.get_y_coord()
-        xt = x_coord // 8
-        yt = y_coord // 8
+        #level_size = self.game.platformer.camera.get_level_size()
+        level_width = self.level_size[0]
+        level_height = self.level_size[1]
+
         grounded = self.game.platformer.player.get_grounded()
 
         # Holds an int from 1-12 representing level number
-        current_level = self.game.platformer.get_current_level()
-        # will have ie current_level = 1, correct for 0 index, so have all_levels[0] which is level1
-        # get level1["map"]
-        current_map = level.all_levels[current_level-1]["map"]
-
-        # Enemies, coins, goal repped by these symbols
-        baddies = {"C", "D", "B", "M", "W", "Q", "J", "8", "S"}
-        coin = {"c"}
-        goal = {"f", "E"}
+        # self.current_level = self.game.platformer.get_current_level()
+        # # will have ie current_level = 1, correct for 0 index, so have all_levels[0] which is level1
+        # # get level1["map"]
+        # self.current_map = level.all_levels[self.current_level-1]["map"]
 
         # Getting nearest enemy distances: Left, Right, Up, Down
-        l_baddie_distance = self._get_distance_item_left(yt, xt, baddies, current_map, level_width)
-        r_baddie_distance = self._get_distance_item_right(yt, xt, baddies, current_map, level_width)
-        down_baddie_distance = self._get_distance_item_down(yt, xt, baddies, current_map, level_height)
-        up_baddie_distance = self._get_distance_item_up(yt, xt, baddies, current_map, level_height)
+        # l_baddie_distance = self._get_distance_item_left(yt, xt, self.baddies, current_map, level_width)
+        # r_baddie_distance = self._get_distance_item_right(yt, xt, self.baddies, current_map, level_width)
+        # down_baddie_distance = self._get_distance_item_down(yt, xt, self.baddies, current_map, level_height)
+        # up_baddie_distance = self._get_distance_item_up(yt, xt, baddies, current_map, level_height)
+
+        r_baddie_distance = self._get_distance_item_right(self.baddies)
+        l_baddie_distance = self._get_distance_item_left(self.baddies)
+
+        if r_baddie_distance != 0 or l_baddie_distance != 0:
+            self.baddie_near = True
+        else:
+            self.baddie_near = False
+
+        r_coin_distance = self._get_distance_item_right(self.coin)
+        l_coin_distance = self._get_distance_item_left(self.coin)
 
         # Getting nearest coin distances
-        l_coin_distance = self._get_distance_item_left(yt, xt, coin, current_map, level_width)
-        r_coin_distance = self._get_distance_item_right(yt, xt, coin, current_map, level_width)
-        down_coin_distance = self._get_distance_item_down(yt, xt, coin, current_map, level_height)
-        up_coin_distance = self._get_distance_item_up(yt, xt, coin, current_map, level_height)
+        # l_coin_distance = self._get_distance_item_left(yt, xt, coin, current_map, level_width)
+        # r_coin_distance = self._get_distance_item_right(yt, xt, coin, current_map, level_width)
+        # down_coin_distance = self._get_distance_item_down(yt, xt, coin, current_map, level_height)
+        # up_coin_distance = self._get_distance_item_up(yt, xt, coin, current_map, level_height)
 
-        # Distance to goal - flag is above player - rewards should naturally encourage going right
-        up_goal_distance = self._get_distance_item_up(yt, xt, goal, current_map, level_height)
+        # # Distance to goal - flag is above player - rewards should naturally encourage going right
+        # up_goal_distance = self._get_distance_item_up(yt, xt, goal, current_map, level_height)
 
         obs = np.array([
-            y_coord / level_height,
-            x_coord / level_width,
+            self.x / level_width,
+            self.y / level_height,
             grounded,
-            l_baddie_distance / level_width,
+            # Normalize by euclidean distance of whole level
+            self.dist_to_flag / math.dist((0,0), (level_width, level_height)),
             r_baddie_distance / level_width,
-            down_baddie_distance / level_height,
-            up_baddie_distance / level_height,
-            l_coin_distance / level_width,
+            l_baddie_distance / level_width,
             r_coin_distance / level_width,
-            down_coin_distance / level_height,
-            up_coin_distance / level_height,
-            up_goal_distance / level_height
+            l_coin_distance / level_width
+            # r_baddie_distance / level_width,
+            # down_baddie_distance / level_height,
+            # up_baddie_distance / level_height,
+            # l_coin_distance / level_width,
+            # r_coin_distance / level_width,
+            # down_coin_distance / level_height,
+            # up_coin_distance / level_height,
+            # up_goal_distance / level_height
         ], dtype=np.float32)
         
         return obs
+
+    # For each frame, get the distance to an item 3 tiles right
+    # fix current_map, will return 0 to rep nothing if nothing near
+    def _get_distance_item_right(self, target_set):
+        i = 1
+        while i < 4:
+            if self.current_map[self.yt][self.xt+i] in target_set:
+                return i*8
+            i+=1
+        
+        # Nothing near
+        return 0
+
+    # For each frame, get the distance to an item 3 tiles left
+    def _get_distance_item_left(self, target_set):
+        i = 1
+        while i < 4:
+            if self.current_map[self.yt][self.xt-i] in target_set:
+                return i*8
+            i+=1
+
+        return 0
     
     # Searching to the right for the nearest enemy/coin/flag
     # From our x position (in tiles), increment by 1 until we hit an enemy, to get distance to it
-    def _get_distance_item_right(self, yt, xt, target_set, current_map, level_width):
-        # At first, assuming an enemy is extremely far away/non-existant
-        distance = level_width
-        level_width_tiles = level_width  // 8
-        step = 1
-        while (xt + step < level_width_tiles):
-            # Accessing coords of level map to see whats there
-            if current_map[yt][xt+step] in target_set:
-                distance = step * 8
-                break
-            step += 1
+    # def _get_distance_item_right(self, yt, xt, target_set, current_map, level_width):
+    #     # At first, assuming an enemy is extremely far away/non-existant
+    #     distance = level_width
+    #     level_width_tiles = level_width  // 8
+    #     step = 1
+    #     while (xt + step < level_width_tiles):
+    #         # Accessing coords of level map to see whats there
+    #         if current_map[yt][xt+step] in target_set:
+    #             distance = step * 8
+    #             break
+    #         step += 1
 
-        return distance
+    #     return distance
     
-    def _get_distance_item_left(self, yt, xt, target_set, current_map, level_width):
-        distance = level_width
-        step = 1
-        # leftmost edge of level map is 0
-        while (xt - step >= 0):
-            if current_map[yt][xt-step] in target_set:
-                distance = step * 8
-                break
-            step += 1
+    # def _get_distance_item_left(self, yt, xt, target_set, current_map, level_width):
+    #     distance = level_width
+    #     step = 1
+    #     # leftmost edge of level map is 0
+    #     while (xt - step >= 0):
+    #         if current_map[yt][xt-step] in target_set:
+    #             distance = step * 8
+    #             break
+    #         step += 1
 
-        return distance
+    #     return distance
     
     # Note: Pygame coords usually have top of screen as 0 and y increases as you go down
     def _get_distance_item_down(self, yt, xt, target_set, current_map, level_height):
