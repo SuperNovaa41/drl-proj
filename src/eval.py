@@ -120,7 +120,7 @@ def do_moes_run(model, episodes, reward_mode, render):
     print(f"Crash rate: {crash_rate*100:.1f}%")
 
     # Per-episode CSV
-    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated","levels_beat"]
+    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated","levels_beat", "steps_left", "steps_right", "steps_down", "jumps"]
     return rows, fieldnames
 
 def do_mario_run(model, episodes, reward_mode, render):

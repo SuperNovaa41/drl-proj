@@ -32,7 +32,7 @@ class MoesEnv(gym.Env):
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         self.action_space = spaces.Discrete(5)
         self.steps = 0
-        self.max_steps = 30
+        self.max_steps = 5000
 
         self.game = game.game(drl_mode=True)
 
@@ -180,10 +180,10 @@ class MoesEnv(gym.Env):
         prev_coins = self.game.platformer.get_coins()
 
         # Encourages being near coins, huge reward when coins collected
-        if self.reward_mode == "coins":
+        if self.reward_mode == "coin":
             if self.coin_near:
                 reward += 0.1
-            if self.game.platformer.get_coins > prev_coins:
+            if self.game.platformer.get_coins() > prev_coins:
                 reward += 100
         elif self.reward_mode == "win":
             if self.levels_beat == 0:

@@ -45,6 +45,9 @@ There are a handful of arguments that can be used to alter the trainer.
 
 `python src/eval.py --model_type DQN --model_path models/DQN_game_coins_mario --env mario --render 1`, will evaluate the agent using the mario environment, with the DQN ML model, with the coins reward mode, and rendered for you to see.
 
+`python src/trainer.py --env moes --timesteps 80000 --reward_mode win` will train the agent using the moes environment, limited to ~80000 time steps, using the "win" rewarding mode.
+
+`python src/eval.py --model_type DQN --model_path models/DQN_game_win_moes --env moes --render 1` will evaluate the agent using the moes environment, with the DQN ML model, with the win reward mode, and rendered for you to see.
 
 ### Evaluating
 
