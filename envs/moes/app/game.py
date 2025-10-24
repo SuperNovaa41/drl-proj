@@ -52,7 +52,8 @@ class game():
         self.actions = {"a":False,"b":False,"up": False,"down":False,"left":False,"right":False,"start":False, "select":False}
         
         self.delta_time = 0
-        self.target_fps = 60
+        # Used to be 60
+        self.target_fps = 30
 
         #game loop varibales
         self.running = False

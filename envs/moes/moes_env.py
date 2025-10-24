@@ -24,13 +24,16 @@ class MoesEnv(gym.Env):
         self._np_rng = np.random.default_rng(seed)
         self.reward_mode = reward_mode
         self.screen_width, self.screen_height = 800, 640
-        self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
+        self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
         self.levels_beat = 0
         low = np.zeros((8,), dtype=np.float32)
         high = np.ones((8,), dtype=np.float32)
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         self.action_space = spaces.Discrete(5)
+        self.steps = 0
+        # For testing
+        self.max_steps = 10
 
         self.game = game.game(drl_mode=True)
 
@@ -123,6 +126,7 @@ class MoesEnv(gym.Env):
     # one decision point, ie movement 1 to the right, or one jump
     # many of these per episode
     def step(self, action: int):
+        self.steps += 1
         terminated = False
         truncated = False
         # Handles actions + updates environment
@@ -146,8 +150,11 @@ class MoesEnv(gym.Env):
 
         # truncated = technical limit, ie level time limit so agent doesn't play endlessly
         # Agent gets 2 minutes max to beat a level
-        # was 120 but changed to 0.5 for testing
-        if level_time >= 0.5:
+        # was 120 but changed to 0.5 (5 seconds) for testing
+        # if level_time >= 0.5:
+        #     truncated = True
+
+        if self.steps >= self.max_steps:
             truncated = True
 
         # handle rewards
@@ -208,12 +215,13 @@ class MoesEnv(gym.Env):
             return None
 
     def close(self):
-        if self._pygame:
-            import pygame
-            pygame.quit()
-            self._pygame = None
-            self._screen = None
-            self._clock = None
+        # if self._pygame:
+        #     import pygame
+        #     pygame.quit()
+        #     self._pygame = None
+        #     self._screen = None
+        #     self._clock = None
+        pygame.quit()
 
     # Helpers
 
@@ -226,8 +234,8 @@ class MoesEnv(gym.Env):
 
     # Sets size for current level in pixels
     def _set_level_size(self, level):
-        level_width = level["map"][0] * 8
-        level_height = level["map"] * 8
+        level_width = len(level["map"][0] * 8)
+        level_height = len(level["map"] * 8)
         self.level_size = [level_width, level_height]
 
     def _get_observation(self):
@@ -375,6 +383,8 @@ class MoesEnv(gym.Env):
 
     # Main rendering starting from call here
     def _render_human(self):
+        if self._clock is None:
+            self._clock = pygame.time.Clock()
         if self._screen is None:
             pygame.init()
             self._screen = pygame.display.set_mode((self.screen_width, self.screen_height))

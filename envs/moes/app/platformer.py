@@ -231,7 +231,7 @@ class Platformer(state.State):
 
         #self.camera.draw_sprite(screen, self.player)
         # Player is green
-        pygame.draw.rect(screen, self.player, (0,255,0))
+        pygame.draw.rect(screen, (0,255,0), self.player)
         #self.camera.draw_rect(screen, self.player, (0, 255, 0))
         #self.hud.render(self.tempsurf)
         #self.game.screen.blit(pygame.transform.scale(screen,(800,640)),(0,0))
