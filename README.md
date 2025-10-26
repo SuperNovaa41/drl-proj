@@ -179,17 +179,19 @@ rectangles for easier rendering. Certain levels and enemies were removed due to 
 
 |Action|Reward|
 |-|-|
-|Decreasing euclidean distance towards flag| 10 / (self.dist_to_flag + 0.0001) (win mode)|
-|Staying alive|+0.001, encourages surviving (all modes)|
+|Decreasing euclidean distance towards flag| 100 / (self.dist_to_flag + 0.0001) (win mode)|
+|Decreasing horizontal distance towards flag| 200 / (self.dist_to_flag_x + 0.0001) (win mode)|
+|Preventing Same x-axis location|-100 (all modes)|
+|Preventing going backwards|-100 (all modes)|
 |Reaching flag|+100, large reward on a win to encourage hitting the flag|
-|Dieing|-10, large loss in reward to discourage dieing|
+|Dieing|-100, large loss in reward to discourage dieing|
 |Jumping when near enemies|+2|
 |Being near a coin|+0.1 (coin mode)|
 |Collecting a coin|+100 (coin mode)|
 
 #### Observation Space:
 
-* Observation = `[self.x, self.y, self.grounded, self.dist_to_flag, r_baddie_distance, r_baddie_distance, r_coin_distance, r_coin_distance]` (all normalized to \~\[0,1]).
+* Observation = `[self.x, self.y, self.grounded, self.dist_to_flag, self.dist_to_flag_x, r_baddie_distance, r_baddie_distance, r_coin_distance, r_coin_distance]` (all normalized to \~\[0,1]).
 
 * Termination on death from enemies, on flag being reached/win
 * Truncation on step violation

@@ -151,11 +151,7 @@ class MoesEnv(gym.Env):
     # many of these per episode
     def step(self, action):
         action = int(action)
-        # Proof agent is taking actions
-        # with test action agent moves right, falls into spikes and doesn't die
-        #action = 2
-        #print(f"Action: {action}")
-        # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
+
         if action == 1:
             self.steps_left += 1
         elif action == 2:
@@ -190,17 +186,10 @@ class MoesEnv(gym.Env):
         reward = 0.0
 
         # Prevents agent from staying still/standing in same place
-        # issue - this needs to scale to always outweigh the benefit from distance to flag
         if self.x == self.prevx:
             reward -= 100
         elif self.x < self.prevx:
             reward -= 100
-
-        # if action == 4:  # jump
-        #     if not self.grounded:
-        #         reward -= 0.1  # penalize jumping midair
-        #     else:
-        #         reward += 0.1 
 
         prev_coins = self.game.platformer.get_coins()
 
@@ -224,11 +213,12 @@ class MoesEnv(gym.Env):
 
             if euclidean_flag_dist < self.dist_to_flag:
                 self.dist_to_flag = euclidean_flag_dist
-                # First, maybe distance is 500, 10 / 500 = 0.02, near flag
-                # 5 pixels away, 10 / 5 = 2, much greater reward 
+                # First, maybe distance is 90, 100 / 90 = 1.11, near flag
+                # 5 pixels away, 100 / 5 = 50, much greater reward 
                 reward += 100 / (self.dist_to_flag + 0.001)
 
-            # Slightly higher reward to encourage rightward movement
+            # Slightly higher reward then euclidean to encourage rightward movement
+            # and prevent jumping in place
             if x_flag_dist < self.dist_to_flag_x:
                 self.dist_to_flag_x = x_flag_dist
                 reward += 200 / (self.dist_to_flag_x + 0.001)
@@ -274,12 +264,6 @@ class MoesEnv(gym.Env):
             return None
 
     def close(self):
-        # if self._pygame:
-        #     import pygame
-        #     pygame.quit()
-        #     self._pygame = None
-        #     self._screen = None
-        #     self._clock = None
         pygame.quit()
         self._screen = None
         self._clock = None
@@ -300,16 +284,8 @@ class MoesEnv(gym.Env):
         self.level_size = [level_width, level_height]
 
     def _get_observation(self):
-        # Move these later cuz need in reset function?
-        #level_size = self.game.platformer.camera.get_level_size()
         level_width = self.level_size[0]
         level_height = self.level_size[1]
-
-        # Holds an int from 1-12 representing level number
-        # self.current_level = self.game.platformer.get_current_level()
-        # # will have ie current_level = 1, correct for 0 index, so have all_levels[0] which is level1
-        # # get level1["map"]
-        # self.current_map = level.all_levels[self.current_level-1]["map"]
 
         # Getting nearest enemy distances: Left, Right, Up, Down
         # l_baddie_distance = self._get_distance_item_left(yt, xt, self.baddies, current_map, level_width)
@@ -367,7 +343,7 @@ class MoesEnv(gym.Env):
         return obs
 
     # For each frame, get the distance to an item 3 tiles right
-    # fix current_map, will return 0 to rep nothing if nothing near
+    # will return 0 to rep nothing if nothing near
     def _get_distance_item_right(self, target_set):
         i = 1
         while i < 4:
@@ -439,15 +415,6 @@ class MoesEnv(gym.Env):
             step += 1
         
         return distance
-    
-    # Modifying these to render properly for drl
-    # --------- Rendering helpers ---------
-    # def _lazy_pygame(self):
-    #     import pygame
-    #     self._pygame = pygame
-    #     self._pygame.init()
-    #     self._screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-    #     self._clock = pygame.time.Clock()
 
     # Main rendering starting from call here
     def _render_human(self):
@@ -456,11 +423,6 @@ class MoesEnv(gym.Env):
         if self._screen is None:
             pygame.init()
             self._screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        #self._lazy_pygame()
-        #pygame = self._pygame
-        # for event in pygame.event.get():
-        #     if event.type == pygame.QUIT:
-        #         self.close()
         self.game.render(self._screen)
         pygame.display.flip()
         self._clock.tick(self.metadata["render_fps"])
