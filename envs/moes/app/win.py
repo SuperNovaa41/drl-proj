@@ -9,6 +9,7 @@ from envs.moes.app import utilities
 from envs.moes.app import state
 from envs.moes.app import game
 
+# For drl not rendering win and death screens
 class win(state.State):
     def __init__(self,game):
         state.State.__init__(self, game)
@@ -23,8 +24,10 @@ class win(state.State):
             self.game.levelselection.levellock[self.game.prev_state.currentlvl - 1] = 2
             self.exit()
     def render(self):
-        self.game.prev_state.render()
-        self.game.screen.blit(self.win_text,self.win_text_rect)
+        pass
+        # self.game.prev_state.render()
+        # self.game.screen.blit(self.win_text,self.win_text_rect)
+
 class death(state.State):
     def __init__(self,game):
         state.State.__init__(self, game)
@@ -37,5 +40,6 @@ class death(state.State):
             self.exit()
             self.game.platformer.health = 3
     def render(self,screen):
-        self.game.prev_state.render()
-        self.game.screen.blit(self.death_text,self.death_text_rect)
+        print("we here")
+        # self.game.prev_state.render()
+        # self.game.screen.blit(self.death_text,self.death_text_rect)

@@ -26,8 +26,8 @@ class MoesEnv(gym.Env):
         self.screen_width, self.screen_height = 800, 640
         self.metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
         self.levels_beat = 0
-        low = np.zeros((8,), dtype=np.float32)
-        high = np.ones((8,), dtype=np.float32)
+        low = np.zeros((9,), dtype=np.float32)
+        high = np.ones((9,), dtype=np.float32)
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         self.action_space = spaces.Discrete(5)
@@ -50,6 +50,7 @@ class MoesEnv(gym.Env):
         self.level1_flag = (92,5)
         self.level2_flag = (103,6)
         self.level3_flag = (111,3)
+        self.prevx = 0
 
         # Enemies, coins, goal repped by these symbols
         self.baddies = {"C", "D", "B", "M", "W", "Q", "J", "8", "S"}
@@ -58,6 +59,7 @@ class MoesEnv(gym.Env):
 
         # Very large number for reducing distance
         self.dist_to_flag = 10000
+        self.dist_to_flag_x = 10000
         self.baddie_near = False
         self.coin_near = False
         self.grounded = None
@@ -67,6 +69,7 @@ class MoesEnv(gym.Env):
         self.steps_right = 0
         self.descents_taken = 0
         self.jumps_taken = 0
+        self.deaths = 0
 
         # Internal state - calls reset from the start
         self.reset(seed=seed)
@@ -84,9 +87,21 @@ class MoesEnv(gym.Env):
             self._rnd.seed(seed)
             self._np_rng = np.random.default_rng(seed)
 
+        # Resets to platformer state
+        self.game.platformer.enter()
+
         # Resets level at spawn with 0 coins and 3 lives
         self.game.platformer.set_coins(0)
         self.game.platformer.set_lives(3)
+        self.dist_to_flag = 10000
+        self.dist_to_flag_x = 10000
+        self.baddie_near = False
+        self.coin_near = False
+        self.grounded = None
+        self.steps = 0
+        self.prevx = 0
+
+        # potential error - game stuck on a death state, not resetting to current state of platformer?
 
         # Holds an int from 1-12 representing level number
         self.current_level = self.game.platformer.get_current_level()
@@ -98,18 +113,15 @@ class MoesEnv(gym.Env):
 
         if self.levels_beat == 0:
             # This just starts level 1
-            self.game.platformer.enter()
             self.game.platformer.levelparse(self.game.platformer.level1)
             self._set_coords()
             # can access width by doing self.level_size[0] 
             self._set_level_size(self.game.platformer.level1)
         elif self.levels_beat == 1:
-            self.game.platformer.enter()
             self.game.platformer.levelparse(self.game.platformer.level2)
             self._set_coords()
             self._set_level_size(self.game.platformer.level2)
         elif self.levels_beat == 2:
-            self.game.platformer.enter()
             self.game.platformer.levelparse(self.game.platformer.level3)
             self._set_coords()
             self._set_level_size(self.game.platformer.level3)
@@ -129,16 +141,20 @@ class MoesEnv(gym.Env):
             "steps_left": self.steps_left,
             "steps_right": self.steps_right,
             "steps_down": self.descents_taken,
-            "jumps": self.jumps_taken
+            "jumps": self.jumps_taken,
+            "deaths": self.deaths
         }
 
         return obs, info
 
     # one decision point, ie movement 1 to the right, or one jump
     # many of these per episode
-    def step(self, action: int):
+    def step(self, action):
+        action = int(action)
         # Proof agent is taking actions
-        print(f"Action: {action}")
+        # with test action agent moves right, falls into spikes and doesn't die
+        #action = 2
+        #print(f"Action: {action}")
         # 0 stay still, 1 go left, 2 go right, 3 go down, 4 jump
         if action == 1:
             self.steps_left += 1
@@ -173,9 +189,18 @@ class MoesEnv(gym.Env):
 
         reward = 0.0
 
-        # Reward system for default staying alive
-        # Want much smaller then movement towards flag 
-        reward += 0.001
+        # Prevents agent from staying still/standing in same place
+        # issue - this needs to scale to always outweigh the benefit from distance to flag
+        if self.x == self.prevx:
+            reward -= 100
+        elif self.x < self.prevx:
+            reward -= 100
+
+        # if action == 4:  # jump
+        #     if not self.grounded:
+        #         reward -= 0.1  # penalize jumping midair
+        #     else:
+        #         reward += 0.1 
 
         prev_coins = self.game.platformer.get_coins()
 
@@ -189,16 +214,24 @@ class MoesEnv(gym.Env):
             if self.levels_beat == 0:
                 # Compounding reward that gets larger as we get closer to the flag
                 euclidean_flag_dist = math.dist((self.x, self.y), self.level1_flag)
+                x_flag_dist = abs(92 - self.x)
             elif self.levels_beat == 1:
                 euclidean_flag_dist = math.dist((self.x, self.y), self.level2_flag)
+                x_flag_dist = abs(103 - self.x)
             else:
                 euclidean_flag_dist = math.dist((self.x, self.y), self.level3_flag)
+                x_flag_dist = abs(111 - self.x)
 
             if euclidean_flag_dist < self.dist_to_flag:
                 self.dist_to_flag = euclidean_flag_dist
                 # First, maybe distance is 500, 10 / 500 = 0.02, near flag
                 # 5 pixels away, 10 / 5 = 2, much greater reward 
-                reward += 10 / (self.dist_to_flag + 0.0001)
+                reward += 100 / (self.dist_to_flag + 0.001)
+
+            # Slightly higher reward to encourage rightward movement
+            if x_flag_dist < self.dist_to_flag_x:
+                self.dist_to_flag_x = x_flag_dist
+                reward += 200 / (self.dist_to_flag_x + 0.001)
 
         # Reward jumping when near enemy
         if self.baddie_near and self.grounded == False:
@@ -210,7 +243,10 @@ class MoesEnv(gym.Env):
         
         # Reward to discourage death
         elif terminated and self.game.curr_state == self.game.deathscreen:
-            reward -= 10
+            self.deaths += 1
+            reward -= 100
+
+        reward = np.clip(reward, -10, 10)
 
         obs = self._get_observation()
 
@@ -221,8 +257,11 @@ class MoesEnv(gym.Env):
             "steps_left": self.steps_left,
             "steps_right": self.steps_right,
             "steps_down": self.descents_taken,
-            "jumps": self.jumps_taken
+            "jumps": self.jumps_taken,
+            "deaths": self.deaths
         }
+
+        self.prevx = self.x
 
         return obs, reward, terminated, truncated, info 
 
@@ -309,6 +348,7 @@ class MoesEnv(gym.Env):
             self.grounded,
             # Normalize by euclidean distance of whole level
             self.dist_to_flag / math.dist((0,0), (level_width, level_height)),
+            self.dist_to_flag_x / level_width,
             # only relevant to know nearby enemies beside player?
             r_baddie_distance / level_width,
             l_baddie_distance / level_width,

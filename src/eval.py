@@ -42,6 +42,7 @@ def run_episode_moes(model, reward_mode="win", render=False):
     steps_right = int(info.get("steps_right", 0))
     steps_down = int(info.get("steps_down", 0))
     jumps = int(info.get("jumps", 0))
+    deaths = int(info.get("deaths", 0))
 
     env.close()
     return {
@@ -54,7 +55,8 @@ def run_episode_moes(model, reward_mode="win", render=False):
         "steps_left": steps_left,
         "steps_right": steps_right,
         "steps_down": steps_down,
-        "jumps": jumps
+        "jumps": jumps,
+        "deaths": deaths
     }
 
 def run_episode_mario(model, reward_mode="coins", render=False):
@@ -120,7 +122,7 @@ def do_moes_run(model, episodes, reward_mode, render):
     print(f"Crash rate: {crash_rate*100:.1f}%")
 
     # Per-episode CSV
-    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated","levels_beat", "steps_left", "steps_right", "steps_down", "jumps"]
+    fieldnames = ["episode","reward","coins_collected","steps","crashed","truncated","levels_beat", "steps_left", "steps_right", "steps_down", "jumps", "deaths"]
     return rows, fieldnames
 
 def do_mario_run(model, episodes, reward_mode, render):

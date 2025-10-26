@@ -91,11 +91,14 @@ class Platformer(state.State):
     def action_update(self):
         if self.game.actions["right"] and self.player.hitcooldown < 10:
             # we get in here, something in move not working
-            self.player.move(1 * self.game.delta_time,0)
+            # potential erorr - delta time to small, rounding to 0 later
+            #self.player.move(1 * self.game.delta_time,0)
+            self.player.move(1,0)
             self.player.direction = 0
             self.player.actstate["walking"] = True
         if self.game.actions["left"]  and self.player.hitcooldown < 10:
-            self.player.move(-(1 * self.game.delta_time), 0)
+            #self.player.move(-(1 * self.game.delta_time), 0)
+            self.player.move(-1, 0)
             self.player.direction = 1
             self.player.actstate["walking"] = True
         if self.game.actions["up"]:
@@ -440,6 +443,9 @@ class Platformer(state.State):
     
     def set_coins(self, amount):
         self.coins = amount
+
+    def get_lives(self):
+        return self.lives
 
     def set_lives(self, amount):
         self.lives = amount

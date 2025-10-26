@@ -39,7 +39,9 @@ class Crab():
         # may need to account for this in render
         self.hitbox = self.rect.copy().inflate(-2,-2)
         self.collisiongroup = collisiongroup
-        
+    
+    # Find whats passed in as x and y to get to move - cuz crab doesnt move
+    # will also need to adjust collisions here on top of spike
     def move(self,x,y,rfix = False):
         self.move_single_axis(round(x), 0)
         self.move_single_axis(0,round(y))
@@ -281,6 +283,7 @@ class Crab():
 #         self.hitbox.center = self.rect.center
     # def render(self,screen):
     #     screen.blit(self.image,self.rect)
+
 class Spike():
     def __init__(self,pos,collisiongroup,dir):
         #pygame.sprite.Sprite.__init__(self)
